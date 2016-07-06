@@ -126,7 +126,7 @@ public:
 				ss >> cameraID;
 				inputType = CAMERA;
 			}
-			else if !(strcmp(input,'Pi'))
+			else if (input[0]=='P' && input[1]=='i')
 			{
 				inputType = RASPICAM;
 			}
@@ -229,7 +229,7 @@ public:
 	vector<string> imageList;
 	size_t atImageList;
 	VideoCapture inputCapture;
-	Raspicam_Cv RPiCam;
+	RaspiCam_Cv RPiCam;
 	InputType inputType;
 	bool goodInput;
 	int flag;
@@ -261,8 +261,8 @@ bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat&
 int main(int argc, char* argv[])
 {
 	help();
-	init(argx,argv,"Camera_Calibration_Node");
-	
+	init(argc,argv,"Camera_Calibration_Node");
+
 	NodeHandle Calibr;
 
 	//! [file_read]
@@ -450,7 +450,7 @@ int main(int argc, char* argv[])
 	}
 	//! [show_results]
 
-	if ((s.inputType==Settings::RPiCam)&&(s.RPiCam.isOpened()))
+	if ((s.inputType==Settings::RASPICAM)&&(s.RPiCam.isOpened()))
 	{
 		s.RPiCam.release();	
 	}
