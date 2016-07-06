@@ -1,0 +1,18804 @@
+cscope 15 $HOME/catkin_ws/src/daq/src/RPiCam -c               0000123705
+	@RpiCamOpenCV.cpp
+
+1 #include 
+	~<ros/ros.h
+>
+
+2 #include 
+	~<stdio.h
+>
+
+3 #include 
+	~<iostream
+>
+
+4 #include 
+	~<math.h
+>
+
+5 #include 
+	~<raspicam/raspicam_cv.h
+>
+
+6 #include 
+	~<opencv/cv.h
+>
+
+7 #include 
+	~<opencv2/opencv.hpp
+>
+
+10 
+using
+ 
+namespace
+ 
+	gstd
+;
+
+11 
+using
+ 
+namespace
+ 
+	gcv
+;
+
+12 
+using
+ 
+namespace
+ 
+	graspicam
+;
+
+14 int 
+	$main
+(int 
+argc
+,char **
+argv
+)
+
+16 
+ros
+::
+	`init
+(
+argc
+,
+argv
+,"RpiCamera");
+
+17 
+ros
+::
+NodeHandle
+ 
+RPiC
+;
+
+18 
+RaspiCam_Cv
+ 
+RPiCam
+;
+
+19 
+Mat
+ 
+image
+;
+
+20 if (!
+RPiCam
+.
+	`open
+())
+
+22 
+cerr
+ << "Error encountered while trying to open camera" << 
+endl
+;
+
+26 while(
+ros
+::
+	`ok
+())
+
+28 
+RPiCam
+.
+	`grab
+();
+
+29 
+RPiCam
+.
+	`retrieve
+(
+image
+);
+
+30 
+	`imshow
+("Image Preview",
+image
+);
+
+31 
+	`waitKey
+(1);
+
+32 
+ros
+::
+	`spinOnce
+();
+
+35 
+cout
+ << "Stoping Camera ... " << 
+endl
+;
+
+36 
+RPiCam
+.
+	`release
+();
+
+38 
+	}
+}
+
+	@camera_calibration.cpp
+
+1 #include 
+	~<iostream
+>
+
+2 #include 
+	~<sstream
+>
+
+3 #include 
+	~<time.h
+>
+
+4 #include 
+	~<stdio.h
+>
+
+6 #include 
+	~<opencv2/core.hpp
+>
+
+7 #include 
+	~<opencv2/core/utility.hpp
+>
+
+8 #include 
+	~<opencv2/imgproc.hpp
+>
+
+9 #include 
+	~<opencv2/calib3d.hpp
+>
+
+10 #include 
+	~<opencv2/imgcodecs.hpp
+>
+
+11 #include 
+	~<opencv2/videoio.hpp
+>
+
+12 #include 
+	~<opencv2/highgui.hpp
+>
+
+14 #ifndef 
+_CRT_SECURE_NO_WARNINGS
+
+
+15 #define 
+	#_CRT_SECURE_NO_WARNINGS
+
+
+	)
+
+18 
+using
+ 
+namespace
+ 
+	gcv
+;
+
+19 
+using
+ 
+namespace
+ 
+	gstd
+;
+
+21 static void 
+	$help
+()
+
+23 
+cout
+ << "This is a camera calibration sample." << 
+endl
+
+
+24 << "Usage: calibration configurationFile" << 
+endl
+
+
+26 "how to edit it. It may be any OpenCV supported file format XML/YAML." << 
+endl
+;
+
+27 
+	}
+}
+
+28 class 
+	cSettings
+
+
+30 
+	mpublic
+:
+
+31 
+	$Settings
+() : 
+	$goodInput
+(
+false
+) {}
+
+32 enum 
+	ePattern
+ { 
+NOT_EXISTING
+, 
+CHESSBOARD
+, 
+CIRCLES_GRID
+, 
+ASYMMETRIC_CIRCLES_GRID
+ 
+	}
+};
+
+33 enum 
+	eInputType
+ { 
+	gINVALID
+, 
+	gCAMERA
+, 
+	gVIDEO_FILE
+, 
+	gIMAGE_LIST
+ };
+
+35 void 
+	$write
+(
+FileStorage
+& 
+fs
+) const
+
+37 
+fs
+ << "{"
+
+38 << "BoardSize_Width" << 
+boardSize
+.
+width
+
+
+39 << "BoardSize_Height" << 
+boardSize
+.
+height
+
+
+40 << "Square_Size" << 
+squareSize
+
+
+41 << "Calibrate_Pattern" << 
+patternToUse
+
+
+42 << "Calibrate_NrOfFrameToUse" << 
+nrFrames
+
+
+43 << "Calibrate_FixAspectRatio" << 
+aspectRatio
+
+
+44 << "Calibrate_AssumeZeroTangentialDistortion" << 
+calibZeroTangentDist
+
+
+45 << "Calibrate_FixPrincipalPointAtTheCenter" << 
+calibFixPrincipalPoint
+
+
+47 << "Write_DetectedFeaturePoints" << 
+writePoints
+
+
+48 << "Write_extrinsicParameters" << 
+writeExtrinsics
+
+
+49 << "Write_outputFileName" << 
+outputFileName
+
+
+51 << "Show_UndistortedImage" << 
+showUndistorsed
+
+
+53 << "Input_FlipAroundHorizontalAxis" << 
+flipVertical
+
+
+54 << "Input_Delay" << 
+delay
+
+
+55 << "Input" << 
+input
+
+
+57 
+	}
+}
+
+58 void 
+	$read
+(const 
+FileNode
+& 
+node
+)
+
+60 
+node
+["BoardSize_Width" ] >> 
+boardSize
+.
+width
+;
+
+61 
+node
+["BoardSize_Height"] >> 
+boardSize
+.
+height
+;
+
+62 
+node
+["Calibrate_Pattern"] >> 
+patternToUse
+;
+
+63 
+node
+["Square_Size"] >> 
+squareSize
+;
+
+64 
+node
+["Calibrate_NrOfFrameToUse"] >> 
+nrFrames
+;
+
+65 
+node
+["Calibrate_FixAspectRatio"] >> 
+aspectRatio
+;
+
+66 
+node
+["Write_DetectedFeaturePoints"] >> 
+writePoints
+;
+
+67 
+node
+["Write_extrinsicParameters"] >> 
+writeExtrinsics
+;
+
+68 
+node
+["Write_outputFileName"] >> 
+outputFileName
+;
+
+69 
+node
+["Calibrate_AssumeZeroTangentialDistortion"] >> 
+calibZeroTangentDist
+;
+
+70 
+node
+["Calibrate_FixPrincipalPointAtTheCenter"] >> 
+calibFixPrincipalPoint
+;
+
+71 
+node
+["Input_FlipAroundHorizontalAxis"] >> 
+flipVertical
+;
+
+72 
+node
+["Show_UndistortedImage"] >> 
+showUndistorsed
+;
+
+73 
+node
+["Input"] >> 
+input
+;
+
+74 
+node
+["Input_Delay"] >> 
+delay
+;
+
+75 
+	`validate
+();
+
+76 
+	}
+}
+
+77 void 
+	$validate
+()
+
+79 
+goodInput
+ = 
+true
+;
+
+80 if (
+boardSize
+.
+width
+ <= 0 || boardSize.
+height
+ <= 0)
+
+82 
+cerr
+ << "Invalid Board size: " << 
+boardSize
+.
+width
+ << " " << boardSize.
+height
+ << 
+endl
+;
+
+83 
+goodInput
+ = 
+false
+;
+
+85 if (
+squareSize
+ <= 10e-6)
+
+87 
+cerr
+ << "Invalid square size " << 
+squareSize
+ << 
+endl
+;
+
+88 
+goodInput
+ = 
+false
+;
+
+90 if (
+nrFrames
+ <= 0)
+
+92 
+cerr
+ << "Invalid number of frames " << 
+nrFrames
+ << 
+endl
+;
+
+93 
+goodInput
+ = 
+false
+;
+
+96 if (
+input
+.
+	`empty
+())
+
+97 
+inputType
+ = 
+INVALID
+;
+
+100 if (
+input
+[0] >= '0' && input[0] <= '9')
+
+102 
+stringstream
+ 
+	`ss
+(
+input
+);
+
+103 
+ss
+ >> 
+cameraID
+;
+
+104 
+inputType
+ = 
+CAMERA
+;
+
+108 if (
+	`readStringList
+(
+input
+, 
+imageList
+))
+
+110 
+inputType
+ = 
+IMAGE_LIST
+;
+
+111 
+nrFrames
+ = (nrFrames < (int)
+imageList
+.
+	`size
+()) ? nrFrames : (int)imageList.size();
+
+114 
+inputType
+ = 
+VIDEO_FILE
+;
+
+116 if (
+inputType
+ == 
+CAMERA
+)
+
+117 
+inputCapture
+.
+	`open
+(
+cameraID
+);
+
+118 if (
+inputType
+ == 
+VIDEO_FILE
+)
+
+119 
+inputCapture
+.
+	`open
+(
+input
+);
+
+120 if (
+inputType
+ != 
+IMAGE_LIST
+ && !
+inputCapture
+.
+	`isOpened
+())
+
+121 
+inputType
+ = 
+INVALID
+;
+
+123 if (
+inputType
+ == 
+INVALID
+)
+
+125 
+cerr
+ << " Input does not exist: " << 
+input
+;
+
+126 
+goodInput
+ = 
+false
+;
+
+129 
+flag
+ = 0;
+
+130 if(
+calibFixPrincipalPoint
+) 
+flag
+ |= 
+CALIB_FIX_PRINCIPAL_POINT
+;
+
+131 if(
+calibZeroTangentDist
+) 
+flag
+ |= 
+CALIB_ZERO_TANGENT_DIST
+;
+
+132 if(
+aspectRatio
+) 
+flag
+ |= 
+CALIB_FIX_ASPECT_RATIO
+;
+
+135 
+calibrationPattern
+ = 
+NOT_EXISTING
+;
+
+136 if (!
+patternToUse
+.
+	`compare
+("CHESSBOARD")) 
+calibrationPattern
+ = 
+CHESSBOARD
+;
+
+137 if (!
+patternToUse
+.
+	`compare
+("CIRCLES_GRID")) 
+calibrationPattern
+ = 
+CIRCLES_GRID
+;
+
+138 if (!
+patternToUse
+.
+	`compare
+("ASYMMETRIC_CIRCLES_GRID")) 
+calibrationPattern
+ = 
+ASYMMETRIC_CIRCLES_GRID
+;
+
+139 if (
+calibrationPattern
+ == 
+NOT_EXISTING
+)
+
+141 
+cerr
+ << " Camera calibration mode does not exist: " << 
+patternToUse
+ << 
+endl
+;
+
+142 
+goodInput
+ = 
+false
+;
+
+144 
+atImageList
+ = 0;
+
+146 
+	}
+}
+
+147 
+Mat
+ 
+	$nextImage
+()
+
+149 
+Mat
+ 
+result
+;
+
+150 if( 
+inputCapture
+.
+	`isOpened
+() )
+
+152 
+Mat
+ 
+view0
+;
+
+153 
+inputCapture
+ >> 
+view0
+;
+
+154 
+view0
+.
+	`copyTo
+(
+result
+);
+
+156 else if( 
+atImageList
+ < 
+imageList
+.
+	`size
+() )
+
+157 
+result
+ = 
+	`imread
+(
+imageList
+[
+atImageList
+++], 
+IMREAD_COLOR
+);
+
+159 return 
+result
+;
+
+160 
+	}
+}
+
+162 static 
+bool
+ 
+readStringList
+( const 
+string
+& 
+filename
+, 
+vector
+<string>& 
+l
+ )
+
+164 
+	gl
+.
+clear
+();
+
+165 
+FileStorage
+ 
+fs
+(
+filename
+, FileStorage::
+READ
+);
+
+166 if( !
+	gfs
+.
+isOpened
+() )
+
+167 return 
+	gfalse
+;
+
+168 
+FileNode
+ 
+	gn
+ = 
+fs
+.
+getFirstTopLevelNode
+();
+
+169 if( 
+	gn
+.
+type
+() != 
+FileNode
+::
+SEQ
+ )
+
+170 return 
+false
+;
+
+171 
+FileNodeIterator
+ 
+	git
+ = 
+n
+.
+begin
+(), 
+	git_end
+ = n.
+end
+();
+
+172 for( ; 
+	git
+ != 
+it_end
+; ++it )
+
+173 
+	gl
+.
+push_back
+((
+string
+)*
+it
+);
+
+174 return 
+	gtrue
+;
+
+176 
+	gpublic
+:
+
+177 
+Size
+ 
+boardSize
+;
+
+178 
+Pattern
+ 
+	gcalibrationPattern
+;
+
+179 float 
+	gsquareSize
+;
+
+180 int 
+	gnrFrames
+;
+
+181 float 
+	gaspectRatio
+;
+
+182 int 
+	gdelay
+;
+
+183 
+bool
+ 
+	gwritePoints
+;
+
+184 
+bool
+ 
+	gwriteExtrinsics
+;
+
+185 
+bool
+ 
+	gcalibZeroTangentDist
+;
+
+186 
+bool
+ 
+	gcalibFixPrincipalPoint
+;
+
+187 
+bool
+ 
+	gflipVertical
+;
+
+188 
+string
+ 
+	goutputFileName
+;
+
+189 
+bool
+ 
+	gshowUndistorsed
+;
+
+190 
+string
+ 
+	ginput
+;
+
+192 int 
+	gcameraID
+;
+
+193 
+	gvector
+<
+	gstring
+> 
+	gimageList
+;
+
+194 
+size_t
+ 
+	gatImageList
+;
+
+195 
+VideoCapture
+ 
+	ginputCapture
+;
+
+196 
+InputType
+ 
+	ginputType
+;
+
+197 
+bool
+ 
+	ggoodInput
+;
+
+198 int 
+	gflag
+;
+
+200 
+	gprivate
+:
+
+201 
+string
+ 
+patternToUse
+;
+
+206 static 
+inline
+ void 
+read
+(const 
+FileNode
+& 
+node
+, 
+Settings
+& 
+x
+, const Settings& 
+default_value
+ = 
+	$Settings
+())
+
+208 if(
+node
+.
+	`empty
+())
+
+209 
+x
+ = 
+default_value
+;
+
+211 
+x
+.
+	`read
+(
+node
+);
+
+212 
+	}
+}
+
+214 static 
+inline
+ void 
+	$write
+(
+FileStorage
+& 
+fs
+, const 
+String
+&, const 
+Settings
+& 
+s
+ )
+
+216 
+s
+.
+	`write
+(
+fs
+);
+
+217 
+	}
+}
+
+219 enum { 
+	mDETECTION
+ = 0, 
+	mCAPTURING
+ = 1, 
+	mCALIBRATED
+ = 2 };
+
+221 
+bool
+ 
+runCalibrationAndSave
+(
+Settings
+& 
+s
+, 
+Size
+ 
+imageSize
+, 
+Mat
+& 
+cameraMatrix
+, Mat& 
+distCoeffs
+,
+
+222 
+vector
+<vector<
+Point2f
+> > 
+imagePoints
+ );
+
+224 int 
+	$main
+(int 
+argc
+, char* 
+argv
+[])
+
+226 
+	`help
+();
+
+229 
+Settings
+ 
+s
+;
+
+230 const 
+string
+ 
+inputSettingsFile
+ = 
+argc
+ > 1 ? 
+argv
+[1] : "default.xml";
+
+231 
+FileStorage
+ 
+	`fs
+(
+inputSettingsFile
+, FileStorage::
+READ
+);
+
+232 if (!
+fs
+.
+	`isOpened
+())
+
+234 
+cout
+ << "Could not open the configuration file: \"" << 
+inputSettingsFile
+ << "\"" << 
+endl
+;
+
+237 
+fs
+["Settings"] >> 
+s
+;
+
+238 
+fs
+.
+	`release
+();
+
+244 if (!
+s
+.
+goodInput
+)
+
+246 
+cout
+ << "Invalid input detected. Application stopping. " << 
+endl
+;
+
+250 
+vector
+<vector<
+Point2f
+> > 
+imagePoints
+;
+
+251 
+Mat
+ 
+cameraMatrix
+, 
+distCoeffs
+;
+
+252 
+Size
+ 
+imageSize
+;
+
+253 int 
+mode
+ = 
+s
+.
+inputType
+ == 
+Settings
+::
+IMAGE_LIST
+ ? 
+CAPTURING
+ : 
+DETECTION
+;
+
+254 
+clock_t
+ 
+prevTimestamp
+ = 0;
+
+255 const 
+Scalar
+ 
+	`RED
+(0,0,255), 
+	`GREEN
+(0,255,0);
+
+256 const char 
+ESC_KEY
+ = 27;
+
+261 
+Mat
+ 
+view
+;
+
+262 
+bool
+ 
+blinkOutput
+ = 
+false
+;
+
+264 
+view
+ = 
+s
+.
+	`nextImage
+();
+
+267 if( 
+mode
+ == 
+CAPTURING
+ && 
+imagePoints
+.
+	`size
+() >= (
+size_t
+)
+s
+.
+nrFrames
+ )
+
+269 if( 
+	`runCalibrationAndSave
+(
+s
+, 
+imageSize
+, 
+cameraMatrix
+, 
+distCoeffs
+, 
+imagePoints
+))
+
+270 
+mode
+ = 
+CALIBRATED
+;
+
+272 
+mode
+ = 
+DETECTION
+;
+
+274 if(
+view
+.
+	`empty
+())
+
+277 if( 
+mode
+ != 
+CALIBRATED
+ && !
+imagePoints
+.
+	`empty
+() )
+
+278 
+	`runCalibrationAndSave
+(
+s
+, 
+imageSize
+, 
+cameraMatrix
+, 
+distCoeffs
+, 
+imagePoints
+);
+
+283 
+imageSize
+ = 
+view
+.
+	`size
+();
+
+284 if( 
+s
+.
+flipVertical
+ ) 
+	`flip
+( 
+view
+, view, 0 );
+
+287 
+vector
+<
+Point2f
+> 
+pointBuf
+;
+
+289 
+bool
+ 
+found
+;
+
+290 switch( 
+s
+.
+calibrationPattern
+ )
+
+292 case 
+Settings
+::
+CHESSBOARD
+:
+
+293 
+found
+ = 
+	`findChessboardCorners
+( 
+view
+, 
+s
+.
+boardSize
+, 
+pointBuf
+,
+
+294 
+CALIB_CB_ADAPTIVE_THRESH
+ | 
+CALIB_CB_FAST_CHECK
+ | 
+CALIB_CB_NORMALIZE_IMAGE
+);
+
+296 case 
+Settings
+::
+CIRCLES_GRID
+:
+
+297 
+found
+ = 
+	`findCirclesGrid
+( 
+view
+, 
+s
+.
+boardSize
+, 
+pointBuf
+ );
+
+299 case 
+Settings
+::
+ASYMMETRIC_CIRCLES_GRID
+:
+
+300 
+found
+ = 
+	`findCirclesGrid
+( 
+view
+, 
+s
+.
+boardSize
+, 
+pointBuf
+, 
+CALIB_CB_ASYMMETRIC_GRID
+ );
+
+303 
+found
+ = 
+false
+;
+
+308 if ( 
+found
+)
+
+311 if( 
+s
+.
+calibrationPattern
+ == 
+Settings
+::
+CHESSBOARD
+)
+
+313 
+Mat
+ 
+viewGray
+;
+
+314 
+	`cvtColor
+(
+view
+, 
+viewGray
+, 
+COLOR_BGR2GRAY
+);
+
+315 
+	`cornerSubPix
+( 
+viewGray
+, 
+pointBuf
+, 
+	`Size
+(11,11),
+
+316 
+	`Size
+(-1,-1), 
+	`TermCriteria
+( 
+TermCriteria
+::
+EPS
++TermCriteria::
+COUNT
+, 30, 0.1 ));
+
+319 if( 
+mode
+ == 
+CAPTURING
+ &&
+
+320 (!
+s
+.
+inputCapture
+.
+	`isOpened
+() || 
+	`clock
+() - 
+prevTimestamp
+ > s.
+delay
+*1e-3*
+CLOCKS_PER_SEC
+) )
+
+322 
+imagePoints
+.
+	`push_back
+(
+pointBuf
+);
+
+323 
+prevTimestamp
+ = 
+	`clock
+();
+
+324 
+blinkOutput
+ = 
+s
+.
+inputCapture
+.
+	`isOpened
+();
+
+328 
+	`drawChessboardCorners
+( 
+view
+, 
+s
+.
+boardSize
+, 
+	`Mat
+(
+pointBuf
+), 
+found
+ );
+
+333 
+string
+ 
+msg
+ = (
+mode
+ == 
+CAPTURING
+) ? "100/100" :
+
+334 
+mode
+ == 
+CALIBRATED
+ ? "Calibrated" : "Press 'g' to start";
+
+335 int 
+baseLine
+ = 0;
+
+336 
+Size
+ 
+textSize
+ = 
+	`getTextSize
+(
+msg
+, 1, 1, 1, &
+baseLine
+);
+
+337 
+Point
+ 
+	`textOrigin
+(
+view
+.
+cols
+ - 2*
+textSize
+.
+width
+ - 10, view.
+rows
+ - 2*
+baseLine
+ - 10);
+
+339 if( 
+mode
+ == 
+CAPTURING
+ )
+
+341 if(
+s
+.
+showUndistorsed
+)
+
+342 
+msg
+ = 
+	`format
+( "%d/%d Undist", (int)
+imagePoints
+.
+	`size
+(), 
+s
+.
+nrFrames
+ );
+
+344 
+msg
+ = 
+	`format
+( "%d/%d", (int)
+imagePoints
+.
+	`size
+(), 
+s
+.
+nrFrames
+ );
+
+347 
+	`putText
+( 
+view
+, 
+msg
+, 
+textOrigin
+, 1, 1, 
+mode
+ == 
+CALIBRATED
+ ? 
+GREEN
+ : 
+RED
+);
+
+349 if( 
+blinkOutput
+ )
+
+350 
+	`bitwise_not
+(
+view
+, view);
+
+354 if( 
+mode
+ == 
+CALIBRATED
+ && 
+s
+.
+showUndistorsed
+ )
+
+356 
+Mat
+ 
+temp
+ = 
+view
+.
+	`clone
+();
+
+357 
+	`undistort
+(
+temp
+, 
+view
+, 
+cameraMatrix
+, 
+distCoeffs
+);
+
+362 
+	`imshow
+("Image View", 
+view
+);
+
+363 char 
+key
+ = (char)
+	`waitKey
+(
+s
+.
+inputCapture
+.
+	`isOpened
+() ? 50 : s.
+delay
+);
+
+365 if( 
+key
+ == 
+ESC_KEY
+ )
+
+368 if( 
+key
+ == 'u' && 
+mode
+ == 
+CALIBRATED
+ )
+
+369 
+s
+.
+showUndistorsed
+ = !s.showUndistorsed;
+
+371 if( 
+s
+.
+inputCapture
+.
+	`isOpened
+() && 
+key
+ == 'g' )
+
+373 
+mode
+ = 
+CAPTURING
+;
+
+374 
+imagePoints
+.
+	`clear
+();
+
+381 if( 
+s
+.
+inputType
+ == 
+Settings
+::
+IMAGE_LIST
+ && s.
+showUndistorsed
+ )
+
+383 
+Mat
+ 
+view
+, 
+rview
+, 
+map1
+, 
+map2
+;
+
+384 
+	`initUndistortRectifyMap
+(
+cameraMatrix
+, 
+distCoeffs
+, 
+	`Mat
+(),
+
+385 
+	`getOptimalNewCameraMatrix
+(
+cameraMatrix
+, 
+distCoeffs
+, 
+imageSize
+, 1, imageSize, 0),
+
+386 
+imageSize
+, 
+CV_16SC2
+, 
+map1
+, 
+map2
+);
+
+388 for(
+size_t
+ 
+i
+ = 0; i < 
+s
+.
+imageList
+.
+	`size
+(); i++ )
+
+390 
+view
+ = 
+	`imread
+(
+s
+.
+imageList
+[
+i
+], 1);
+
+391 if(
+view
+.
+	`empty
+())
+
+393 
+	`remap
+(
+view
+, 
+rview
+, 
+map1
+, 
+map2
+, 
+INTER_LINEAR
+);
+
+394 
+	`imshow
+("Image View", 
+rview
+);
+
+395 char 
+c
+ = (char)
+	`waitKey
+();
+
+396 if( 
+c
+ == 
+ESC_KEY
+ || c == 'q' || c == 'Q' )
+
+403 
+	}
+}
+
+406 static double 
+computeReprojectionErrors
+( const 
+vector
+<vector<
+Point3f
+> >& 
+objectPoints
+,
+
+407 const 
+vector
+<vector<
+Point2f
+> >& 
+imagePoints
+,
+
+408 const 
+vector
+<
+Mat
+>& 
+rvecs
+, const vector<Mat>& 
+tvecs
+,
+
+409 const 
+Mat
+& 
+cameraMatrix
+ , const Mat& 
+distCoeffs
+,
+
+410 
+vector
+<float>& 
+perViewErrors
+)
+
+412 
+	gvector
+<
+	gPoint2f
+> 
+	gimagePoints2
+;
+
+413 
+size_t
+ 
+	gtotalPoints
+ = 0;
+
+414 double 
+	gtotalErr
+ = 0, 
+	gerr
+;
+
+415 
+	gperViewErrors
+.
+resize
+(
+objectPoints
+.
+size
+());
+
+417 for(
+size_t
+ 
+	gi
+ = 0; i < 
+	gobjectPoints
+.
+size
+(); ++i )
+
+419 
+projectPoints
+(
+objectPoints
+[
+i
+], 
+rvecs
+[i], 
+tvecs
+[i], 
+cameraMatrix
+, 
+distCoeffs
+, 
+imagePoints2
+);
+
+420 
+	gerr
+ = 
+norm
+(
+imagePoints
+[
+i
+], 
+imagePoints2
+, 
+NORM_L2
+);
+
+422 
+size_t
+ 
+	gn
+ = 
+objectPoints
+[
+i
+].
+size
+();
+
+423 
+	gperViewErrors
+[
+i
+] = (float) 
+std
+::
+sqrt
+(
+err
+*err/
+n
+);
+
+424 
+	gtotalErr
+ += 
+err
+*err;
+
+425 
+	gtotalPoints
+ += 
+n
+;
+
+428 return 
+	gstd
+::
+sqrt
+(
+totalErr
+/
+totalPoints
+);
+
+432 static void 
+calcBoardCornerPositions
+(
+Size
+ 
+boardSize
+, float 
+squareSize
+, 
+vector
+<
+Point3f
+>& 
+corners
+,
+
+433 
+Settings
+::
+Pattern
+ 
+patternType
+ )
+
+435 
+corners
+.
+clear
+();
+
+437 switch(
+	gpatternType
+)
+
+439 case 
+	gSettings
+::
+CHESSBOARD
+:
+
+440 case 
+Settings
+::
+CIRCLES_GRID
+:
+
+441 for( int 
+i
+ = 0; 
+	gi
+ < 
+	gboardSize
+.
+	gheight
+; ++i )
+
+442 for( int 
+	gj
+ = 0; j < 
+	gboardSize
+.
+	gwidth
+; ++j )
+
+443 
+	gcorners
+.
+push_back
+(
+Point3f
+(
+j
+*
+squareSize
+, 
+i
+*squareSize, 0));
+
+446 case 
+	gSettings
+::
+ASYMMETRIC_CIRCLES_GRID
+:
+
+447 for( int 
+i
+ = 0; 
+	gi
+ < 
+	gboardSize
+.
+	gheight
+; i++ )
+
+448 for( int 
+	gj
+ = 0; j < 
+	gboardSize
+.
+	gwidth
+; j++ )
+
+449 
+	gcorners
+.
+push_back
+(
+Point3f
+((2*
+j
+ + 
+i
+ % 2)*
+squareSize
+, i*squareSize, 0));
+
+456 static 
+bool
+ 
+runCalibration
+( 
+Settings
+& 
+s
+, 
+Size
+& 
+imageSize
+, 
+Mat
+& 
+cameraMatrix
+, Mat& 
+distCoeffs
+,
+
+457 
+vector
+<vector<
+Point2f
+> > 
+imagePoints
+, vector<
+Mat
+>& 
+rvecs
+, vector<Mat>& 
+tvecs
+,
+
+458 
+vector
+<float>& 
+reprojErrs
+, double& 
+totalAvgErr
+)
+
+461 
+	gcameraMatrix
+ = 
+Mat
+::
+eye
+(3, 3, 
+CV_64F
+);
+
+462 if( 
+	gs
+.
+	gflag
+ & 
+	gCALIB_FIX_ASPECT_RATIO
+ )
+
+463 
+	gcameraMatrix
+.
+	gat
+<double>(0,0) = 
+s
+.
+aspectRatio
+;
+
+465 
+	gdistCoeffs
+ = 
+Mat
+::
+zeros
+(8, 1, 
+CV_64F
+);
+
+467 
+	gvector
+<vector<
+	gPoint3f
+> > 
+objectPoints
+(1);
+
+468 
+calcBoardCornerPositions
+(
+s
+.
+boardSize
+, s.
+squareSize
+, 
+objectPoints
+[0], s.
+calibrationPattern
+);
+
+470 
+	gobjectPoints
+.
+resize
+(
+imagePoints
+.
+size
+(),
+objectPoints
+[0]);
+
+473 double 
+	grms
+ = 
+calibrateCamera
+(
+objectPoints
+, 
+imagePoints
+, 
+imageSize
+, 
+cameraMatrix
+,
+
+474 
+distCoeffs
+, 
+rvecs
+, 
+tvecs
+, 
+s
+.
+flag
+|
+CALIB_FIX_K4
+|
+CALIB_FIX_K5
+);
+
+476 
+	gcout
+ << "Re-projection error reported by calibrateCamera: "<< 
+	grms
+ << 
+	gendl
+;
+
+478 
+bool
+ 
+	gok
+ = 
+checkRange
+(
+cameraMatrix
+) && checkRange(
+distCoeffs
+);
+
+480 
+	gtotalAvgErr
+ = 
+computeReprojectionErrors
+(
+objectPoints
+, 
+imagePoints
+,
+
+481 
+rvecs
+, 
+tvecs
+, 
+cameraMatrix
+, 
+distCoeffs
+, 
+reprojErrs
+);
+
+483 return 
+	gok
+;
+
+487 static void 
+saveCameraParams
+( 
+Settings
+& 
+s
+, 
+Size
+& 
+imageSize
+, 
+Mat
+& 
+cameraMatrix
+, Mat& 
+distCoeffs
+,
+
+488 const 
+vector
+<
+Mat
+>& 
+rvecs
+, const vector<Mat>& 
+tvecs
+,
+
+489 const 
+vector
+<float>& 
+reprojErrs
+, const vector<vector<
+Point2f
+> >& 
+imagePoints
+,
+
+490 double 
+totalAvgErr
+ )
+
+492 
+FileStorage
+ 
+fs
+( 
+s
+.
+outputFileName
+, FileStorage::
+WRITE
+ );
+
+494 
+time_t
+ 
+	gtm
+;
+
+495 
+time
+( &
+tm
+ );
+
+496 struct 
+tm
+ *
+	gt2
+ = 
+localtime
+( &tm );
+
+497 char 
+	gbuf
+[1024];
+
+498 
+strftime
+( 
+buf
+, sizeof(buf), "%c", 
+t2
+ );
+
+500 
+	gfs
+ << "calibration_time" << 
+	gbuf
+;
+
+502 if( !
+	grvecs
+.
+empty
+() || !
+	greprojErrs
+.empty() )
+
+503 
+	gfs
+ << "nr_of_frames" << (int)
+	gstd
+::
+max
+(
+rvecs
+.
+size
+(), 
+reprojErrs
+.size());
+
+504 
+	gfs
+ << "image_width" << 
+	gimageSize
+.
+	gwidth
+;
+
+505 
+	gfs
+ << "image_height" << 
+	gimageSize
+.
+	gheight
+;
+
+506 
+	gfs
+ << "board_width" << 
+	gs
+.
+	gboardSize
+.
+	gwidth
+;
+
+507 
+	gfs
+ << "board_height" << 
+	gs
+.
+	gboardSize
+.
+	gheight
+;
+
+508 
+	gfs
+ << "square_size" << 
+	gs
+.
+	gsquareSize
+;
+
+510 if( 
+	gs
+.
+	gflag
+ & 
+	gCALIB_FIX_ASPECT_RATIO
+ )
+
+511 
+	gfs
+ << "fix_aspect_ratio" << 
+	gs
+.
+	gaspectRatio
+;
+
+513 if (
+	gs
+.
+	gflag
+)
+
+515 
+sprintf
+(
+buf
+, "flags: %s%s%s%s",
+
+516 
+s
+.
+flag
+ & 
+CALIB_USE_INTRINSIC_GUESS
+ ? " +use_intrinsic_guess" : "",
+
+517 
+s
+.
+flag
+ & 
+CALIB_FIX_ASPECT_RATIO
+ ? " +fix_aspect_ratio" : "",
+
+518 
+s
+.
+flag
+ & 
+CALIB_FIX_PRINCIPAL_POINT
+ ? " +fix_principal_point" : "",
+
+519 
+s
+.
+flag
+ & 
+CALIB_ZERO_TANGENT_DIST
+ ? " +zero_tangent_dist" : "");
+
+520 
+cvWriteComment
+(*
+fs
+, 
+buf
+, 0);
+
+523 
+	gfs
+ << "flags" << 
+	gs
+.
+	gflag
+;
+
+525 
+	gfs
+ << "camera_matrix" << 
+	gcameraMatrix
+;
+
+526 
+	gfs
+ << "distortion_coefficients" << 
+	gdistCoeffs
+;
+
+528 
+	gfs
+ << "avg_reprojection_error" << 
+	gtotalAvgErr
+;
+
+529 if (
+	gs
+.
+	gwriteExtrinsics
+ && !
+	greprojErrs
+.
+empty
+())
+
+530 
+	gfs
+ << "per_view_reprojection_errors" << 
+Mat
+(
+reprojErrs
+);
+
+532 if(
+	gs
+.
+	gwriteExtrinsics
+ && !
+	grvecs
+.
+empty
+() && !
+	gtvecs
+.empty() )
+
+534 
+CV_Assert
+(
+rvecs
+[0].
+type
+() == 
+tvecs
+[0].type());
+
+535 
+Mat
+ 
+bigmat
+((int)
+rvecs
+.
+size
+(), 6, rvecs[0].
+type
+());
+
+536 for( 
+size_t
+ 
+	gi
+ = 0; i < 
+	grvecs
+.
+size
+(); i++ )
+
+538 
+Mat
+ 
+	gr
+ = 
+bigmat
+(
+Range
+(int(
+i
+), int(i+1)), Range(0,3));
+
+539 
+Mat
+ 
+	gt
+ = 
+bigmat
+(
+Range
+(int(
+i
+), int(i+1)), Range(3,6));
+
+541 
+CV_Assert
+(
+rvecs
+[
+i
+].
+rows
+ == 3 && rvecs[i].
+cols
+ == 1);
+
+542 
+CV_Assert
+(
+tvecs
+[
+i
+].
+rows
+ == 3 && tvecs[i].
+cols
+ == 1);
+
+544 
+	gr
+ = 
+rvecs
+[
+i
+].
+t
+();
+
+545 
+	gt
+ = 
+tvecs
+[
+i
+].
+t
+();
+
+548 
+	gfs
+ << "extrinsic_parameters" << 
+	gbigmat
+;
+
+551 if(
+	gs
+.
+	gwritePoints
+ && !
+	gimagePoints
+.
+empty
+() )
+
+553 
+Mat
+ 
+imagePtMat
+((int)
+imagePoints
+.
+size
+(), (int)imagePoints[0].size(), 
+CV_32FC2
+);
+
+554 for( 
+size_t
+ 
+	gi
+ = 0; i < 
+	gimagePoints
+.
+size
+(); i++ )
+
+556 
+Mat
+ 
+	gr
+ = 
+imagePtMat
+.
+row
+(int(
+i
+)).
+reshape
+(2, imagePtMat.
+cols
+);
+
+557 
+Mat
+ 
+imgpti
+(
+imagePoints
+[
+i
+]);
+
+558 
+	gimgpti
+.
+copyTo
+(
+r
+);
+
+560 
+	gfs
+ << "image_points" << 
+	gimagePtMat
+;
+
+565 
+bool
+ 
+runCalibrationAndSave
+(
+Settings
+& 
+s
+, 
+Size
+ 
+imageSize
+, 
+Mat
+& 
+cameraMatrix
+, Mat& 
+distCoeffs
+,
+
+566 
+vector
+<vector<
+Point2f
+> > 
+imagePoints
+)
+
+568 
+	gvector
+<
+	gMat
+> 
+	grvecs
+, 
+	gtvecs
+;
+
+569 
+	gvector
+<float> 
+	greprojErrs
+;
+
+570 double 
+	gtotalAvgErr
+ = 0;
+
+572 
+bool
+ 
+	gok
+ = 
+runCalibration
+(
+s
+, 
+imageSize
+, 
+cameraMatrix
+, 
+distCoeffs
+, 
+imagePoints
+, 
+rvecs
+, 
+tvecs
+, 
+reprojErrs
+,
+
+573 
+totalAvgErr
+);
+
+574 
+	gcout
+ << (
+	gok
+ ? "Calibration succeeded" : "Calibration failed")
+
+575 << ". avg re projection error = " << 
+totalAvgErr
+ << 
+endl
+;
+
+577 if (
+	gok
+)
+
+578 
+saveCameraParams
+(
+s
+, 
+imageSize
+, 
+cameraMatrix
+, 
+distCoeffs
+, 
+rvecs
+, 
+tvecs
+, 
+reprojErrs
+, 
+imagePoints
+,
+
+579 
+totalAvgErr
+);
+
+580 return 
+	gok
+;
+
+	@/usr/include/math.h
+
+23 #ifndef 
+_MATH_H
+
+
+24 #define 
+	#_MATH_H
+ 1
+
+	)
+
+26 #include 
+	~<features.h
+>
+
+28 
+	g__BEGIN_DECLS
+
+
+32 #include 
+	~<bits/huge_val.h
+>
+
+33 #ifdef 
+__USE_ISOC99
+
+
+34 #include 
+	~<bits/huge_valf.h
+>
+
+35 #include 
+	~<bits/huge_vall.h
+>
+
+38 #include 
+	~<bits/inf.h
+>
+
+41 #include 
+	~<bits/nan.h
+>
+
+45 #include 
+	~<bits/mathdef.h
+>
+
+52 #define 
+	#__MATHCALL
+(
+function
+,
+suffix
+, 
+args
+) \
+
+53 
+	`__MATHDECL
+ (
+_Mdouble_
+,
+function
+,
+suffix
+, 
+args
+)
+
+	)
+
+54 #define 
+	#__MATHDECL
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+) \
+
+55 
+	`__MATHDECL_1
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+); \
+
+56 
+	`__MATHDECL_1
+(
+type
+, 
+	`__CONCAT
+(
+__
+,
+function
+),
+suffix
+, 
+args
+)
+
+	)
+
+57 #define 
+	#__MATHCALLX
+(
+function
+,
+suffix
+, 
+args
+, 
+attrib
+) \
+
+58 
+	`__MATHDECLX
+ (
+_Mdouble_
+,
+function
+,
+suffix
+, 
+args
+, 
+attrib
+)
+
+	)
+
+59 #define 
+	#__MATHDECLX
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+, 
+attrib
+) \
+
+60 
+	`__MATHDECL_1
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+) 
+	`__attribute__
+ (
+attrib
+); \
+
+61 
+	`__MATHDECL_1
+(
+type
+, 
+	`__CONCAT
+(
+__
+,
+function
+),
+suffix
+, 
+args
+) 
+	`__attribute__
+ (
+attrib
+)
+
+	)
+
+62 #define 
+	#__MATHDECL_1
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+) \
+
+63 extern 
+type
+ 
+	`__MATH_PRECNAME
+(
+function
+,
+suffix
+) 
+args
+ 
+__THROW
+
+
+	)
+
+65 #define 
+	#_Mdouble_
+ double
+
+	)
+
+66 #define 
+	#__MATH_PRECNAME
+(
+name
+,
+r
+) 
+	`__CONCAT
+(name,r)
+
+	)
+
+67 #define 
+	#_Mdouble_BEGIN_NAMESPACE
+ 
+__BEGIN_NAMESPACE_STD
+
+
+	)
+
+68 #define 
+	#_Mdouble_END_NAMESPACE
+ 
+__END_NAMESPACE_STD
+
+
+	)
+
+69 #include 
+	~<bits/mathcalls.h
+>
+
+70 #undef 
+_Mdouble_
+
+
+71 #undef 
+_Mdouble_BEGIN_NAMESPACE
+
+
+72 #undef 
+_Mdouble_END_NAMESPACE
+
+
+73 #undef 
+__MATH_PRECNAME
+
+
+75 #if 
+defined
+ 
+__USE_MISC
+ || defined 
+__USE_ISOC99
+
+
+81 #ifndef 
+_Mfloat_
+
+
+82 #define 
+	#_Mfloat_
+ float
+
+	)
+
+84 #define 
+	#_Mdouble_
+ 
+_Mfloat_
+
+
+	)
+
+85 #define 
+	#__MATH_PRECNAME
+(
+name
+,
+r
+) name##
+f
+##
+	)
+r
+
+86 #define 
+	#_Mdouble_BEGIN_NAMESPACE
+ 
+__BEGIN_NAMESPACE_C99
+
+
+	)
+
+87 #define 
+	#_Mdouble_END_NAMESPACE
+ 
+__END_NAMESPACE_C99
+
+
+	)
+
+88 #include 
+	~<bits/mathcalls.h
+>
+
+89 #undef 
+_Mdouble_
+
+
+90 #undef 
+_Mdouble_BEGIN_NAMESPACE
+
+
+91 #undef 
+_Mdouble_END_NAMESPACE
+
+
+92 #undef 
+__MATH_PRECNAME
+
+
+94 #if !(
+defined
+ 
+__NO_LONG_DOUBLE_MATH
+ && defined 
+_LIBC
+) \
+
+95 || 
+defined
+ 
+__LDBL_COMPAT
+
+
+96 #ifdef 
+__LDBL_COMPAT
+
+
+98 #ifdef 
+__USE_ISOC99
+
+
+99 extern float 
+	$__nldbl_nexttowardf
+ (float 
+__x
+, long double 
+__y
+)
+
+100 
+__THROW
+ 
+	`__attribute__
+ ((
+__const__
+));
+
+101 #ifdef 
+__REDIRECT_NTH
+
+
+102 extern float 
+	`__REDIRECT_NTH
+ (
+nexttowardf
+, (float 
+__x
+, long double 
+__y
+),
+
+103 
+__nldbl_nexttowardf
+)
+
+104 
+	`__attribute__
+ ((
+__const__
+));
+
+105 extern double 
+	`__REDIRECT_NTH
+ (
+nexttoward
+, (double 
+__x
+, long double 
+__y
+),
+
+106 
+nextafter
+) 
+	`__attribute__
+ ((
+__const__
+));
+
+107 extern long double 
+	`__REDIRECT_NTH
+ (
+nexttowardl
+,
+
+108 (long double 
+__x
+, long double 
+__y
+),
+
+109 
+nextafter
+) 
+	`__attribute__
+ ((
+__const__
+));
+
+113 #undef 
+__MATHDECL_1
+
+
+114 #define 
+	#__MATHDECL_2
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+, 
+alias
+) \
+
+115 extern 
+type
+ 
+	`__REDIRECT_NTH
+(
+	`__MATH_PRECNAME
+(
+function
+,
+suffix
+), \
+
+116 
+args
+, 
+alias
+)
+
+	)
+
+117 #define 
+	#__MATHDECL_1
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+) \
+
+118 
+	`__MATHDECL_2
+(
+type
+, 
+function
+,
+suffix
+, 
+args
+, 
+	`__CONCAT
+(function,suffix))
+
+	)
+
+124 #ifndef 
+_Mlong_double_
+
+
+125 #define 
+	#_Mlong_double_
+ long double
+
+	)
+
+127 #define 
+	#_Mdouble_
+ 
+_Mlong_double_
+
+
+	)
+
+128 #define 
+	#__MATH_PRECNAME
+(
+name
+,
+r
+) name##
+l
+##
+	)
+r
+
+129 #define 
+	#_Mdouble_BEGIN_NAMESPACE
+ 
+__BEGIN_NAMESPACE_C99
+
+
+	)
+
+130 #define 
+	#_Mdouble_END_NAMESPACE
+ 
+__END_NAMESPACE_C99
+
+
+	)
+
+131 #define 
+	#__MATH_DECLARE_LDOUBLE
+ 1
+
+	)
+
+132 #include 
+	~<bits/mathcalls.h
+>
+
+133 #undef 
+_Mdouble_
+
+
+134 #undef 
+_Mdouble_BEGIN_NAMESPACE
+
+
+135 #undef 
+_Mdouble_END_NAMESPACE
+
+
+136 #undef 
+__MATH_PRECNAME
+
+
+141 #undef 
+__MATHDECL_1
+
+
+142 #undef 
+__MATHDECL
+
+
+143 #undef 
+__MATHCALL
+
+
+146 #if 
+defined
+ 
+__USE_MISC
+ || defined 
+__USE_XOPEN
+
+
+148 extern int 
+signgam
+;
+
+153 #ifdef 
+__USE_ISOC99
+
+
+191 
+FP_NAN
+ =
+
+192 #define 
+	#FP_NAN
+ 0
+
+	)
+
+193 
+FP_NAN
+,
+
+194 
+FP_INFINITE
+ =
+
+195 #define 
+	#FP_INFINITE
+ 1
+
+	)
+
+196 
+FP_INFINITE
+,
+
+197 
+FP_ZERO
+ =
+
+198 #define 
+	#FP_ZERO
+ 2
+
+	)
+
+199 
+FP_ZERO
+,
+
+200 
+FP_SUBNORMAL
+ =
+
+201 #define 
+	#FP_SUBNORMAL
+ 3
+
+	)
+
+202 
+FP_SUBNORMAL
+,
+
+203 
+FP_NORMAL
+ =
+
+204 #define 
+	#FP_NORMAL
+ 4
+
+	)
+
+205 
+FP_NORMAL
+
+
+209 #ifdef 
+__NO_LONG_DOUBLE_MATH
+
+
+210 #define 
+	#fpclassify
+(
+x
+) \
+
+211 (sizeof (
+x
+) == sizeof (float) ? 
+	`__fpclassifyf
+ (x) : 
+	`__fpclassify
+ (x))
+
+	)
+
+213 #define 
+	#fpclassify
+(
+x
+) \
+
+214 (sizeof (
+x
+) == sizeof (float) \
+
+215 ? 
+	`__fpclassifyf
+ (
+x
+) \
+
+216 : sizeof (
+x
+) == sizeof (double) \
+
+217 ? 
+	`__fpclassify
+ (
+x
+) : 
+	`__fpclassifyl
+ (x))
+
+	)
+
+221 #ifdef 
+__NO_LONG_DOUBLE_MATH
+
+
+222 #define 
+	#signbit
+(
+x
+) \
+
+223 (sizeof (
+x
+) == sizeof (float) ? 
+	`__signbitf
+ (x) : 
+	`__signbit
+ (x))
+
+	)
+
+225 #define 
+	#signbit
+(
+x
+) \
+
+226 (sizeof (
+x
+) == sizeof (float) \
+
+227 ? 
+	`__signbitf
+ (
+x
+) \
+
+228 : sizeof (
+x
+) == sizeof (double) \
+
+229 ? 
+	`__signbit
+ (
+x
+) : 
+	`__signbitl
+ (x))
+
+	)
+
+233 #ifdef 
+__NO_LONG_DOUBLE_MATH
+
+
+234 #define 
+	#isfinite
+(
+x
+) \
+
+235 (sizeof (
+x
+) == sizeof (float) ? 
+	`__finitef
+ (x) : 
+	`__finite
+ (x))
+
+	)
+
+237 #define 
+	#isfinite
+(
+x
+) \
+
+238 (sizeof (
+x
+) == sizeof (float) \
+
+239 ? 
+	`__finitef
+ (
+x
+) \
+
+240 : sizeof (
+x
+) == sizeof (double) \
+
+241 ? 
+	`__finite
+ (
+x
+) : 
+	`__finitel
+ (x))
+
+	)
+
+245 #define 
+	#isnormal
+(
+x
+) (
+	`fpclassify
+ (x) == 
+FP_NORMAL
+)
+
+	)
+
+249 #ifdef 
+__NO_LONG_DOUBLE_MATH
+
+
+250 #define 
+	#isnan
+(
+x
+) \
+
+251 (sizeof (
+x
+) == sizeof (float) ? 
+	`__isnanf
+ (x) : 
+	`__isnan
+ (x))
+
+	)
+
+253 #define 
+	#isnan
+(
+x
+) \
+
+254 (sizeof (
+x
+) == sizeof (float) \
+
+255 ? 
+	`__isnanf
+ (
+x
+) \
+
+256 : sizeof (
+x
+) == sizeof (double) \
+
+257 ? 
+	`__isnan
+ (
+x
+) : 
+	`__isnanl
+ (x))
+
+	)
+
+261 #ifdef 
+__NO_LONG_DOUBLE_MATH
+
+
+262 #define 
+	#isinf
+(
+x
+) \
+
+263 (sizeof (
+x
+) == sizeof (float) ? 
+	`__isinff
+ (x) : 
+	`__isinf
+ (x))
+
+	)
+
+265 #define 
+	#isinf
+(
+x
+) \
+
+266 (sizeof (
+x
+) == sizeof (float) \
+
+267 ? 
+	`__isinff
+ (
+x
+) \
+
+268 : sizeof (
+x
+) == sizeof (double) \
+
+269 ? 
+	`__isinf
+ (
+x
+) : 
+	`__isinfl
+ (x))
+
+	)
+
+273 #define 
+	#MATH_ERRNO
+ 1
+
+	)
+
+274 #define 
+	#MATH_ERREXCEPT
+ 2
+
+	)
+
+279 #ifndef 
+__FAST_MATH__
+
+
+280 #define 
+	#math_errhandling
+ (
+MATH_ERRNO
+ | 
+MATH_ERREXCEPT
+)
+
+	)
+
+285 #ifdef 
+__USE_GNU
+
+
+287 #ifdef 
+__NO_LONG_DOUBLE_MATH
+
+
+288 #define 
+	#issignaling
+(
+x
+) \
+
+289 (sizeof (
+x
+) == sizeof (float) ? 
+	`__issignalingf
+ (x) : 
+	`__issignaling
+ (x))
+
+	)
+
+291 #define 
+	#issignaling
+(
+x
+) \
+
+292 (sizeof (
+x
+) == sizeof (float) \
+
+293 ? 
+	`__issignalingf
+ (
+x
+) \
+
+294 : sizeof (
+x
+) == sizeof (double) \
+
+295 ? 
+	`__issignaling
+ (
+x
+) : 
+	`__issignalingl
+ (x))
+
+	)
+
+299 #ifdef 
+__USE_MISC
+
+
+303 
+_IEEE_
+ = -1,
+
+304 
+_SVID_
+,
+
+305 
+_XOPEN_
+,
+
+306 
+_POSIX_
+,
+
+307 
+_ISOC_
+
+
+308 } 
+	t_LIB_VERSION_TYPE
+;
+
+313 extern 
+_LIB_VERSION_TYPE
+ 
+_LIB_VERSION
+;
+
+317 #ifdef 
+__USE_SVID
+
+
+323 #ifdef 
+__cplusplus
+
+
+324 struct 
+__exception
+
+
+326 struct 
+exception
+
+
+329 int 
+type
+;
+
+330 char *
+name
+;
+
+331 double 
+arg1
+;
+
+332 double 
+arg2
+;
+
+333 double 
+retval
+;
+
+334 
+	}
+};
+
+336 #ifdef 
+__cplusplus
+
+
+337 extern int 
+	$matherr
+ (struct 
+__exception
+ *
+__exc
+) 
+	`throw
+ ();
+
+339 extern int 
+	`matherr
+ (struct 
+exception
+ *
+__exc
+);
+
+342 #define 
+	#X_TLOSS
+ 1.41484755040568800000e+16
+
+	)
+
+345 #define 
+	#DOMAIN
+ 1
+
+	)
+
+346 #define 
+	#SING
+ 2
+
+	)
+
+347 #define 
+	#OVERFLOW
+ 3
+
+	)
+
+348 #define 
+	#UNDERFLOW
+ 4
+
+	)
+
+349 #define 
+	#TLOSS
+ 5
+
+	)
+
+350 #define 
+	#PLOSS
+ 6
+
+	)
+
+353 #define 
+	#HUGE
+ 3.40282347e+38F
+
+	)
+
+357 #ifdef 
+__USE_XOPEN
+
+
+359 #define 
+	#MAXFLOAT
+ 3.40282347e+38F
+
+	)
+
+366 #if 
+defined
+ 
+__USE_BSD
+ || defined 
+__USE_XOPEN
+
+
+367 #define 
+	#M_E
+ 2.7182818284590452354
+
+	)
+
+368 #define 
+	#M_LOG2E
+ 1.4426950408889634074
+
+	)
+
+369 #define 
+	#M_LOG10E
+ 0.43429448190325182765
+
+	)
+
+370 #define 
+	#M_LN2
+ 0.69314718055994530942
+
+	)
+
+371 #define 
+	#M_LN10
+ 2.30258509299404568402
+
+	)
+
+372 #define 
+	#M_PI
+ 3.14159265358979323846
+
+	)
+
+373 #define 
+	#M_PI_2
+ 1.57079632679489661923
+
+	)
+
+374 #define 
+	#M_PI_4
+ 0.78539816339744830962
+
+	)
+
+375 #define 
+	#M_1_PI
+ 0.31830988618379067154
+
+	)
+
+376 #define 
+	#M_2_PI
+ 0.63661977236758134308
+
+	)
+
+377 #define 
+	#M_2_SQRTPI
+ 1.12837916709551257390
+
+	)
+
+378 #define 
+	#M_SQRT2
+ 1.41421356237309504880
+
+	)
+
+379 #define 
+	#M_SQRT1_2
+ 0.70710678118654752440
+
+	)
+
+385 #ifdef 
+__USE_GNU
+
+
+386 #define 
+	#M_El
+ 2.718281828459045235360287471352662498L
+
+	)
+
+387 #define 
+	#M_LOG2El
+ 1.442695040888963407359924681001892137L
+
+	)
+
+388 #define 
+	#M_LOG10El
+ 0.434294481903251827651128918916605082L
+
+	)
+
+389 #define 
+	#M_LN2l
+ 0.693147180559945309417232121458176568L
+
+	)
+
+390 #define 
+	#M_LN10l
+ 2.302585092994045684017991454684364208L
+
+	)
+
+391 #define 
+	#M_PIl
+ 3.141592653589793238462643383279502884L
+
+	)
+
+392 #define 
+	#M_PI_2l
+ 1.570796326794896619231321691639751442L
+
+	)
+
+393 #define 
+	#M_PI_4l
+ 0.785398163397448309615660845819875721L
+
+	)
+
+394 #define 
+	#M_1_PIl
+ 0.318309886183790671537767526745028724L
+
+	)
+
+395 #define 
+	#M_2_PIl
+ 0.636619772367581343075535053490057448L
+
+	)
+
+396 #define 
+	#M_2_SQRTPIl
+ 1.128379167095512573896158903121545172L
+
+	)
+
+397 #define 
+	#M_SQRT2l
+ 1.414213562373095048801688724209698079L
+
+	)
+
+398 #define 
+	#M_SQRT1_2l
+ 0.707106781186547524400844362104849039L
+
+	)
+
+405 #if 
+defined
+ 
+__STRICT_ANSI__
+ && !defined 
+__NO_MATH_INLINES
+
+
+406 #define 
+	#__NO_MATH_INLINES
+ 1
+
+	)
+
+409 #if 
+defined
+ 
+__USE_ISOC99
+ && 
+	`__GNUC_PREREQ
+(2,97)
+
+416 #define 
+	#isgreater
+(
+x
+, 
+y
+) 
+	`__builtin_isgreater
+(x, y)
+
+	)
+
+417 #define 
+	#isgreaterequal
+(
+x
+, 
+y
+) 
+	`__builtin_isgreaterequal
+(x, y)
+
+	)
+
+418 #define 
+	#isless
+(
+x
+, 
+y
+) 
+	`__builtin_isless
+(x, y)
+
+	)
+
+419 #define 
+	#islessequal
+(
+x
+, 
+y
+) 
+	`__builtin_islessequal
+(x, y)
+
+	)
+
+420 #define 
+	#islessgreater
+(
+x
+, 
+y
+) 
+	`__builtin_islessgreater
+(x, y)
+
+	)
+
+421 #define 
+	#isunordered
+(
+u
+, 
+v
+) 
+	`__builtin_isunordered
+(u, v)
+
+	)
+
+425 #ifdef 
+__USE_EXTERN_INLINES
+
+
+426 #include 
+	~<bits/mathinline.h
+>
+
+431 #if 
+defined
+ 
+__FINITE_MATH_ONLY__
+ && __FINITE_MATH_ONLY__ > 0
+
+432 #include 
+	~<bits/math-finite.h
+>
+
+435 #ifdef 
+__USE_ISOC99
+
+
+439 #ifndef 
+isgreater
+
+
+440 #define 
+	#isgreater
+(
+x
+, 
+y
+) \
+
+441 (
+__extension__
+ \
+
+442 ({ 
+	`__typeof__
+(
+x
+) 
+__x
+ = (x); __typeof__(
+y
+) 
+__y
+ = (y); \
+
+443 !
+	`isunordered
+ (
+__x
+, 
+__y
+) && __x > __y; 
+	}
+}))
+
+	)
+
+447 #ifndef 
+isgreaterequal
+
+
+448 #define 
+	#isgreaterequal
+(
+x
+, 
+y
+) \
+
+449 (
+__extension__
+ \
+
+450 ({ 
+	`__typeof__
+(
+x
+) 
+__x
+ = (x); __typeof__(
+y
+) 
+__y
+ = (y); \
+
+451 !
+	`isunordered
+ (
+__x
+, 
+__y
+) && __x >= __y; }))
+
+	)
+
+455 #ifndef 
+isless
+
+
+456 #define 
+	#isless
+(
+x
+, 
+y
+) \
+
+457 (
+__extension__
+ \
+
+458 ({ 
+	`__typeof__
+(
+x
+) 
+__x
+ = (x); __typeof__(
+y
+) 
+__y
+ = (y); \
+
+459 !
+	`isunordered
+ (
+__x
+, 
+__y
+) && __x < __y; }))
+
+	)
+
+463 #ifndef 
+islessequal
+
+
+464 #define 
+	#islessequal
+(
+x
+, 
+y
+) \
+
+465 (
+__extension__
+ \
+
+466 ({ 
+	`__typeof__
+(
+x
+) 
+__x
+ = (x); __typeof__(
+y
+) 
+__y
+ = (y); \
+
+467 !
+	`isunordered
+ (
+__x
+, 
+__y
+) && __x <= __y; }))
+
+	)
+
+471 #ifndef 
+islessgreater
+
+
+472 #define 
+	#islessgreater
+(
+x
+, 
+y
+) \
+
+473 (
+__extension__
+ \
+
+474 ({ 
+	`__typeof__
+(
+x
+) 
+__x
+ = (x); __typeof__(
+y
+) 
+__y
+ = (y); \
+
+475 !
+	`isunordered
+ (
+__x
+, 
+__y
+) && (__x < __y || __y < __x); }))
+
+	)
+
+479 #ifndef 
+isunordered
+
+
+480 #define 
+	#isunordered
+(
+u
+, 
+v
+) \
+
+481 (
+__extension__
+ \
+
+482 ({ 
+	`__typeof__
+(
+u
+) 
+__u
+ = (u); __typeof__(
+v
+) 
+__v
+ = (v); \
+
+483 
+	`fpclassify
+ (
+__u
+) == 
+FP_NAN
+ || fpclassify (
+__v
+) == FP_NAN; }))
+
+	)
+
+488 
+	g__END_DECLS
+
+
+	@/usr/include/stdio.h
+
+23 #ifndef 
+_STDIO_H
+
+
+25 #if !
+defined
+ 
+__need_FILE
+ && !defined 
+__need___FILE
+
+
+26 #define 
+	#_STDIO_H
+ 1
+
+	)
+
+27 #include 
+	~<features.h
+>
+
+29 
+	g__BEGIN_DECLS
+
+
+31 #define 
+	#__need_size_t
+
+
+	)
+
+32 #define 
+	#__need_NULL
+
+
+	)
+
+33 #include 
+	~<stddef.h
+>
+
+35 #include 
+	~<bits/types.h
+>
+
+36 #define 
+	#__need_FILE
+
+
+	)
+
+37 #define 
+	#__need___FILE
+
+
+	)
+
+41 #if !
+defined
+ 
+__FILE_defined
+ && defined 
+__need_FILE
+
+
+44 struct 
+	g_IO_FILE
+;
+
+46 
+__BEGIN_NAMESPACE_STD
+
+
+48 typedef struct 
+_IO_FILE
+ 
+	tFILE
+;
+
+49 
+	g__END_NAMESPACE_STD
+
+
+50 #if 
+defined
+ 
+__USE_LARGEFILE64
+ || defined 
+__USE_SVID
+ || defined 
+__USE_POSIX
+ \
+
+51 || 
+defined
+ 
+	g__USE_BSD
+ || defined 
+	g__USE_ISOC99
+ || defined 
+	g__USE_XOPEN
+ \
+
+52 || 
+defined
+ 
+__USE_POSIX2
+
+
+53 
+	$__USING_NAMESPACE_STD
+(
+FILE
+)
+
+56 #define 
+	#__FILE_defined
+ 1
+
+	)
+
+58 #undef 
+__need_FILE
+
+
+61 #if !
+defined
+ 
+____FILE_defined
+ && defined 
+__need___FILE
+
+
+64 typedef struct 
+_IO_FILE
+ 
+	t__FILE
+;
+
+66 #define 
+	#____FILE_defined
+ 1
+
+	)
+
+68 #undef 
+__need___FILE
+
+
+71 #ifdef 
+_STDIO_H
+
+
+72 #define 
+	#_STDIO_USES_IOSTREAM
+
+
+	)
+
+74 #include 
+	~<libio.h
+>
+
+76 #if 
+defined
+ 
+__USE_XOPEN
+ || defined 
+__USE_XOPEN2K8
+
+
+77 #ifdef 
+__GNUC__
+
+
+78 #ifndef 
+_VA_LIST_DEFINED
+
+
+79 typedef 
+_G_va_list
+ 
+	tva_list
+;
+
+80 #define 
+	#_VA_LIST_DEFINED
+
+
+	)
+
+83 #include 
+	~<stdarg.h
+>
+
+87 #ifdef 
+__USE_XOPEN2K8
+
+
+88 #ifndef 
+__off_t_defined
+
+
+89 #ifndef 
+__USE_FILE_OFFSET64
+
+
+90 typedef 
+__off_t
+ 
+	toff_t
+;
+
+92 typedef 
+__off64_t
+ 
+	toff_t
+;
+
+94 #define 
+	#__off_t_defined
+
+
+	)
+
+96 #if 
+defined
+ 
+__USE_LARGEFILE64
+ && !defined 
+__off64_t_defined
+
+
+97 typedef 
+__off64_t
+ 
+	toff64_t
+;
+
+98 #define 
+	#__off64_t_defined
+
+
+	)
+
+101 #ifndef 
+__ssize_t_defined
+
+
+102 typedef 
+__ssize_t
+ 
+	tssize_t
+;
+
+103 #define 
+	#__ssize_t_defined
+
+
+	)
+
+108 
+__BEGIN_NAMESPACE_STD
+
+
+109 #ifndef 
+__USE_FILE_OFFSET64
+
+
+110 typedef 
+_G_fpos_t
+ 
+	tfpos_t
+;
+
+112 typedef 
+_G_fpos64_t
+ 
+	tfpos_t
+;
+
+114 
+__END_NAMESPACE_STD
+
+
+115 #ifdef 
+__USE_LARGEFILE64
+
+
+116 typedef 
+_G_fpos64_t
+ 
+	tfpos64_t
+;
+
+120 #define 
+	#_IOFBF
+ 0
+
+	)
+
+121 #define 
+	#_IOLBF
+ 1
+
+	)
+
+122 #define 
+	#_IONBF
+ 2
+
+	)
+
+126 #ifndef 
+BUFSIZ
+
+
+127 #define 
+	#BUFSIZ
+ 
+_IO_BUFSIZ
+
+
+	)
+
+133 #ifndef 
+EOF
+
+
+134 #define 
+	#EOF
+ (-1)
+
+	)
+
+140 #define 
+	#SEEK_SET
+ 0
+
+	)
+
+141 #define 
+	#SEEK_CUR
+ 1
+
+	)
+
+142 #define 
+	#SEEK_END
+ 2
+
+	)
+
+143 #ifdef 
+__USE_GNU
+
+
+144 #define 
+	#SEEK_DATA
+ 3
+
+	)
+
+145 #define 
+	#SEEK_HOLE
+ 4
+
+	)
+
+149 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_XOPEN
+
+
+151 #define 
+	#P_tmpdir
+ "/tmp"
+
+	)
+
+164 #include 
+	~<bits/stdio_lim.h
+>
+
+168 extern struct 
+_IO_FILE
+ *
+stdin
+;
+
+169 extern struct 
+_IO_FILE
+ *
+stdout
+;
+
+170 extern struct 
+_IO_FILE
+ *
+stderr
+;
+
+172 #define 
+	#stdin
+ 
+stdin
+
+
+	)
+
+173 #define 
+	#stdout
+ 
+stdout
+
+
+	)
+
+174 #define 
+	#stderr
+ 
+stderr
+
+
+	)
+
+176 
+__BEGIN_NAMESPACE_STD
+
+
+178 extern int 
+	$remove
+ (const char *
+__filename
+) 
+__THROW
+;
+
+180 extern int 
+	$rename
+ (const char *
+__old
+, const char *
+__new
+) 
+__THROW
+;
+
+181 
+__END_NAMESPACE_STD
+
+
+183 #ifdef 
+__USE_ATFILE
+
+
+185 extern int 
+	$renameat
+ (int 
+__oldfd
+, const char *
+__old
+, int 
+__newfd
+,
+
+186 const char *
+__new
+) 
+__THROW
+;
+
+189 
+__BEGIN_NAMESPACE_STD
+
+
+194 #ifndef 
+__USE_FILE_OFFSET64
+
+
+195 extern 
+FILE
+ *
+	$tmpfile
+ (void) 
+__wur
+;
+
+197 #ifdef 
+__REDIRECT
+
+
+198 extern 
+FILE
+ *
+	`__REDIRECT
+ (
+tmpfile
+, (void), 
+tmpfile64
+) 
+__wur
+;
+
+200 #define 
+	#tmpfile
+ 
+tmpfile64
+
+
+	)
+
+204 #ifdef 
+__USE_LARGEFILE64
+
+
+205 extern 
+FILE
+ *
+	$tmpfile64
+ (void) 
+__wur
+;
+
+209 extern char *
+	$tmpnam
+ (char *
+__s
+) 
+__THROW
+ 
+__wur
+;
+
+210 
+__END_NAMESPACE_STD
+
+
+212 #ifdef 
+__USE_MISC
+
+
+215 extern char *
+	$tmpnam_r
+ (char *
+__s
+) 
+__THROW
+ 
+__wur
+;
+
+219 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_XOPEN
+
+
+227 extern char *
+	$tempnam
+ (const char *
+__dir
+, const char *
+__pfx
+)
+
+228 
+__THROW
+ 
+__attribute_malloc__
+ 
+__wur
+;
+
+232 
+__BEGIN_NAMESPACE_STD
+
+
+237 extern int 
+	`fclose
+ (
+FILE
+ *
+__stream
+);
+
+242 extern int 
+	`fflush
+ (
+FILE
+ *
+__stream
+);
+
+243 
+__END_NAMESPACE_STD
+
+
+245 #ifdef 
+__USE_MISC
+
+
+252 extern int 
+	`fflush_unlocked
+ (
+FILE
+ *
+__stream
+);
+
+255 #ifdef 
+__USE_GNU
+
+
+262 extern int 
+	`fcloseall
+ (void);
+
+266 
+__BEGIN_NAMESPACE_STD
+
+
+267 #ifndef 
+__USE_FILE_OFFSET64
+
+
+272 extern 
+FILE
+ *
+	$fopen
+ (const char *
+__restrict
+ 
+__filename
+,
+
+273 const char *
+__restrict
+ 
+__modes
+) 
+__wur
+;
+
+278 extern 
+FILE
+ *
+	$freopen
+ (const char *
+__restrict
+ 
+__filename
+,
+
+279 const char *
+__restrict
+ 
+__modes
+,
+
+280 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+282 #ifdef 
+__REDIRECT
+
+
+283 extern 
+FILE
+ *
+	`__REDIRECT
+ (
+fopen
+, (const char *
+__restrict
+ 
+__filename
+,
+
+284 const char *
+__restrict
+ 
+__modes
+), 
+fopen64
+)
+
+285 
+__wur
+;
+
+286 extern 
+FILE
+ *
+	`__REDIRECT
+ (
+freopen
+, (const char *
+__restrict
+ 
+__filename
+,
+
+287 const char *
+__restrict
+ 
+__modes
+,
+
+288 
+FILE
+ *
+__restrict
+ 
+__stream
+), 
+freopen64
+)
+
+289 
+__wur
+;
+
+291 #define 
+	#fopen
+ 
+fopen64
+
+
+	)
+
+292 #define 
+	#freopen
+ 
+freopen64
+
+
+	)
+
+295 
+__END_NAMESPACE_STD
+
+
+296 #ifdef 
+__USE_LARGEFILE64
+
+
+297 extern 
+FILE
+ *
+	$fopen64
+ (const char *
+__restrict
+ 
+__filename
+,
+
+298 const char *
+__restrict
+ 
+__modes
+) 
+__wur
+;
+
+299 extern 
+FILE
+ *
+	$freopen64
+ (const char *
+__restrict
+ 
+__filename
+,
+
+300 const char *
+__restrict
+ 
+__modes
+,
+
+301 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+304 #ifdef 
+__USE_POSIX
+
+
+306 extern 
+FILE
+ *
+	$fdopen
+ (int 
+__fd
+, const char *
+__modes
+) 
+__THROW
+ 
+__wur
+;
+
+309 #ifdef 
+__USE_GNU
+
+
+312 extern 
+FILE
+ *
+	$fopencookie
+ (void *
+__restrict
+ 
+__magic_cookie
+,
+
+313 const char *
+__restrict
+ 
+__modes
+,
+
+314 
+_IO_cookie_io_functions_t
+ 
+__io_funcs
+) 
+__THROW
+ 
+__wur
+;
+
+317 #ifdef 
+__USE_XOPEN2K8
+
+
+319 extern 
+FILE
+ *
+	$fmemopen
+ (void *
+__s
+, 
+size_t
+ 
+__len
+, const char *
+__modes
+)
+
+320 
+__THROW
+ 
+__wur
+;
+
+325 extern 
+FILE
+ *
+	$open_memstream
+ (char **
+__bufloc
+, 
+size_t
+ *
+__sizeloc
+) 
+__THROW
+ 
+__wur
+;
+
+329 
+__BEGIN_NAMESPACE_STD
+
+
+332 extern void 
+	$setbuf
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+, char *__restrict 
+__buf
+) 
+__THROW
+;
+
+336 extern int 
+	$setvbuf
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+, char *__restrict 
+__buf
+,
+
+337 int 
+__modes
+, 
+size_t
+ 
+__n
+) 
+__THROW
+;
+
+338 
+__END_NAMESPACE_STD
+
+
+340 #ifdef 
+__USE_BSD
+
+
+343 extern void 
+	$setbuffer
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+, char *__restrict 
+__buf
+,
+
+344 
+size_t
+ 
+__size
+) 
+__THROW
+;
+
+347 extern void 
+	$setlinebuf
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+;
+
+351 
+__BEGIN_NAMESPACE_STD
+
+
+356 extern int 
+	`fprintf
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+,
+
+357 const char *
+__restrict
+ 
+__format
+, ...);
+
+362 extern int 
+	`printf
+ (const char *
+__restrict
+ 
+__format
+, ...);
+
+364 extern int 
+	$sprintf
+ (char *
+__restrict
+ 
+__s
+,
+
+365 const char *
+__restrict
+ 
+__format
+, ...) 
+__THROWNL
+;
+
+371 extern int 
+	`vfprintf
+ (
+FILE
+ *
+__restrict
+ 
+__s
+, const char *__restrict 
+__format
+,
+
+372 
+_G_va_list
+ 
+__arg
+);
+
+377 extern int 
+	`vprintf
+ (const char *
+__restrict
+ 
+__format
+, 
+_G_va_list
+ 
+__arg
+);
+
+379 extern int 
+	$vsprintf
+ (char *
+__restrict
+ 
+__s
+, const char *__restrict 
+__format
+,
+
+380 
+_G_va_list
+ 
+__arg
+) 
+__THROWNL
+;
+
+381 
+__END_NAMESPACE_STD
+
+
+383 #if 
+defined
+ 
+__USE_BSD
+ || defined 
+__USE_ISOC99
+ || defined 
+__USE_UNIX98
+
+
+384 
+__BEGIN_NAMESPACE_C99
+
+
+386 extern int 
+	$snprintf
+ (char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__maxlen
+,
+
+387 const char *
+__restrict
+ 
+__format
+, ...)
+
+388 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	`__format__
+ (
+__printf__
+, 3, 4)));
+
+390 extern int 
+	$vsnprintf
+ (char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__maxlen
+,
+
+391 const char *
+__restrict
+ 
+__format
+, 
+_G_va_list
+ 
+__arg
+)
+
+392 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	`__format__
+ (
+__printf__
+, 3, 0)));
+
+393 
+__END_NAMESPACE_C99
+
+
+396 #ifdef 
+__USE_GNU
+
+
+399 extern int 
+	$vasprintf
+ (char **
+__restrict
+ 
+__ptr
+, const char *__restrict 
+__f
+,
+
+400 
+_G_va_list
+ 
+__arg
+)
+
+401 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	$__format__
+ (
+__printf__
+, 2, 0))) 
+__wur
+;
+
+402 extern int 
+	$__asprintf
+ (char **
+__restrict
+ 
+__ptr
+,
+
+403 const char *
+__restrict
+ 
+__fmt
+, ...)
+
+404 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	$__format__
+ (
+__printf__
+, 2, 3))) 
+__wur
+;
+
+405 extern int 
+	$asprintf
+ (char **
+__restrict
+ 
+__ptr
+,
+
+406 const char *
+__restrict
+ 
+__fmt
+, ...)
+
+407 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	$__format__
+ (
+__printf__
+, 2, 3))) 
+__wur
+;
+
+410 #ifdef 
+__USE_XOPEN2K8
+
+
+412 extern int 
+	$vdprintf
+ (int 
+__fd
+, const char *
+__restrict
+ 
+__fmt
+,
+
+413 
+_G_va_list
+ 
+__arg
+)
+
+414 
+	`__attribute__
+ ((
+	`__format__
+ (
+__printf__
+, 2, 0)));
+
+415 extern int 
+	$dprintf
+ (int 
+__fd
+, const char *
+__restrict
+ 
+__fmt
+, ...)
+
+416 
+	`__attribute__
+ ((
+	`__format__
+ (
+__printf__
+, 2, 3)));
+
+420 
+__BEGIN_NAMESPACE_STD
+
+
+425 extern int 
+	$fscanf
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+,
+
+426 const char *
+__restrict
+ 
+__format
+, ...) 
+__wur
+;
+
+431 extern int 
+	$scanf
+ (const char *
+__restrict
+ 
+__format
+, ...) 
+__wur
+;
+
+433 extern int 
+	$sscanf
+ (const char *
+__restrict
+ 
+__s
+,
+
+434 const char *
+__restrict
+ 
+__format
+, ...) 
+__THROW
+;
+
+436 #if 
+defined
+ 
+__USE_ISOC99
+ && !defined 
+__USE_GNU
+ \
+
+437 && (!
+defined
+ 
+__LDBL_COMPAT
+ || !defined 
+__REDIRECT
+) \
+
+438 && (
+defined
+ 
+__STRICT_ANSI__
+ || defined 
+__USE_XOPEN2K
+)
+
+439 #ifdef 
+__REDIRECT
+
+
+443 extern int 
+	`__REDIRECT
+ (
+fscanf
+, (
+FILE
+ *
+__restrict
+ 
+__stream
+,
+
+444 const char *
+__restrict
+ 
+__format
+, ...),
+
+445 
+__isoc99_fscanf
+) 
+__wur
+;
+
+446 extern int 
+	`__REDIRECT
+ (
+scanf
+, (const char *
+__restrict
+ 
+__format
+, ...),
+
+447 
+__isoc99_scanf
+) 
+__wur
+;
+
+448 extern int 
+	`__REDIRECT_NTH
+ (
+sscanf
+, (const char *
+__restrict
+ 
+__s
+,
+
+449 const char *
+__restrict
+ 
+__format
+, ...),
+
+450 
+__isoc99_sscanf
+);
+
+452 extern int 
+	$__isoc99_fscanf
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+,
+
+453 const char *
+__restrict
+ 
+__format
+, ...) 
+__wur
+;
+
+454 extern int 
+	$__isoc99_scanf
+ (const char *
+__restrict
+ 
+__format
+, ...) 
+__wur
+;
+
+455 extern int 
+	$__isoc99_sscanf
+ (const char *
+__restrict
+ 
+__s
+,
+
+456 const char *
+__restrict
+ 
+__format
+, ...) 
+__THROW
+;
+
+457 #define 
+	#fscanf
+ 
+__isoc99_fscanf
+
+
+	)
+
+458 #define 
+	#scanf
+ 
+__isoc99_scanf
+
+
+	)
+
+459 #define 
+	#sscanf
+ 
+__isoc99_sscanf
+
+
+	)
+
+463 
+__END_NAMESPACE_STD
+
+
+465 #ifdef 
+__USE_ISOC99
+
+
+466 
+__BEGIN_NAMESPACE_C99
+
+
+471 extern int 
+	$vfscanf
+ (
+FILE
+ *
+__restrict
+ 
+__s
+, const char *__restrict 
+__format
+,
+
+472 
+_G_va_list
+ 
+__arg
+)
+
+473 
+	`__attribute__
+ ((
+	$__format__
+ (
+__scanf__
+, 2, 0))) 
+__wur
+;
+
+479 extern int 
+	$vscanf
+ (const char *
+__restrict
+ 
+__format
+, 
+_G_va_list
+ 
+__arg
+)
+
+480 
+	`__attribute__
+ ((
+	$__format__
+ (
+__scanf__
+, 1, 0))) 
+__wur
+;
+
+483 extern int 
+	$vsscanf
+ (const char *
+__restrict
+ 
+__s
+,
+
+484 const char *
+__restrict
+ 
+__format
+, 
+_G_va_list
+ 
+__arg
+)
+
+485 
+__THROW
+ 
+	`__attribute__
+ ((
+	`__format__
+ (
+__scanf__
+, 2, 0)));
+
+487 #if !
+defined
+ 
+__USE_GNU
+ \
+
+488 && (!
+defined
+ 
+__LDBL_COMPAT
+ || !defined 
+__REDIRECT
+) \
+
+489 && (
+defined
+ 
+__STRICT_ANSI__
+ || defined 
+__USE_XOPEN2K
+)
+
+490 #ifdef 
+__REDIRECT
+
+
+494 extern int 
+	`__REDIRECT
+ (
+vfscanf
+,
+
+495 (
+FILE
+ *
+__restrict
+ 
+__s
+,
+
+496 const char *
+__restrict
+ 
+__format
+, 
+_G_va_list
+ 
+__arg
+),
+
+497 
+__isoc99_vfscanf
+)
+
+498 
+	`__attribute__
+ ((
+	$__format__
+ (
+__scanf__
+, 2, 0))) 
+__wur
+;
+
+499 extern int 
+	`__REDIRECT
+ (
+vscanf
+, (const char *
+__restrict
+ 
+__format
+,
+
+500 
+_G_va_list
+ 
+__arg
+), 
+__isoc99_vscanf
+)
+
+501 
+	`__attribute__
+ ((
+	$__format__
+ (
+__scanf__
+, 1, 0))) 
+__wur
+;
+
+502 extern int 
+	`__REDIRECT_NTH
+ (
+vsscanf
+,
+
+503 (const char *
+__restrict
+ 
+__s
+,
+
+504 const char *
+__restrict
+ 
+__format
+,
+
+505 
+_G_va_list
+ 
+__arg
+), 
+__isoc99_vsscanf
+)
+
+506 
+	`__attribute__
+ ((
+	`__format__
+ (
+__scanf__
+, 2, 0)));
+
+508 extern int 
+	$__isoc99_vfscanf
+ (
+FILE
+ *
+__restrict
+ 
+__s
+,
+
+509 const char *
+__restrict
+ 
+__format
+,
+
+510 
+_G_va_list
+ 
+__arg
+) 
+__wur
+;
+
+511 extern int 
+	$__isoc99_vscanf
+ (const char *
+__restrict
+ 
+__format
+,
+
+512 
+_G_va_list
+ 
+__arg
+) 
+__wur
+;
+
+513 extern int 
+	$__isoc99_vsscanf
+ (const char *
+__restrict
+ 
+__s
+,
+
+514 const char *
+__restrict
+ 
+__format
+,
+
+515 
+_G_va_list
+ 
+__arg
+) 
+__THROW
+;
+
+516 #define 
+	#vfscanf
+ 
+__isoc99_vfscanf
+
+
+	)
+
+517 #define 
+	#vscanf
+ 
+__isoc99_vscanf
+
+
+	)
+
+518 #define 
+	#vsscanf
+ 
+__isoc99_vsscanf
+
+
+	)
+
+522 
+__END_NAMESPACE_C99
+
+
+526 
+__BEGIN_NAMESPACE_STD
+
+
+531 extern int 
+	`fgetc
+ (
+FILE
+ *
+__stream
+);
+
+532 extern int 
+	`getc
+ (
+FILE
+ *
+__stream
+);
+
+538 extern int 
+	`getchar
+ (void);
+
+539 
+__END_NAMESPACE_STD
+
+
+543 #define 
+	#getc
+(
+_fp
+) 
+	`_IO_getc
+ (_fp)
+
+	)
+
+545 #if 
+defined
+ 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+550 extern int 
+	`getc_unlocked
+ (
+FILE
+ *
+__stream
+);
+
+551 extern int 
+	`getchar_unlocked
+ (void);
+
+554 #ifdef 
+__USE_MISC
+
+
+561 extern int 
+	`fgetc_unlocked
+ (
+FILE
+ *
+__stream
+);
+
+565 
+__BEGIN_NAMESPACE_STD
+
+
+573 extern int 
+	`fputc
+ (int 
+__c
+, 
+FILE
+ *
+__stream
+);
+
+574 extern int 
+	`putc
+ (int 
+__c
+, 
+FILE
+ *
+__stream
+);
+
+580 extern int 
+	`putchar
+ (int 
+__c
+);
+
+581 
+__END_NAMESPACE_STD
+
+
+585 #define 
+	#putc
+(
+_ch
+, 
+_fp
+) 
+	`_IO_putc
+ (_ch, _fp)
+
+	)
+
+587 #ifdef 
+__USE_MISC
+
+
+594 extern int 
+	`fputc_unlocked
+ (int 
+__c
+, 
+FILE
+ *
+__stream
+);
+
+597 #if 
+defined
+ 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+602 extern int 
+	`putc_unlocked
+ (int 
+__c
+, 
+FILE
+ *
+__stream
+);
+
+603 extern int 
+	`putchar_unlocked
+ (int 
+__c
+);
+
+607 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_MISC
+ \
+
+608 || (
+defined
+ 
+__USE_XOPEN
+ && !defined 
+__USE_XOPEN2K
+)
+
+610 extern int 
+	`getw
+ (
+FILE
+ *
+__stream
+);
+
+613 extern int 
+	`putw
+ (int 
+__w
+, 
+FILE
+ *
+__stream
+);
+
+617 
+__BEGIN_NAMESPACE_STD
+
+
+622 extern char *
+	$fgets
+ (char *
+__restrict
+ 
+__s
+, int 
+__n
+, 
+FILE
+ *__restrict 
+__stream
+)
+
+623 
+__wur
+;
+
+625 #if !
+defined
+ 
+__USE_ISOC11
+ \
+
+626 || (
+defined
+ 
+__cplusplus
+ && __cplusplus <= 201103L)
+
+638 extern char *
+	$gets
+ (char *
+__s
+) 
+__wur
+ 
+__attribute_deprecated__
+;
+
+640 
+__END_NAMESPACE_STD
+
+
+642 #ifdef 
+__USE_GNU
+
+
+649 extern char *
+	$fgets_unlocked
+ (char *
+__restrict
+ 
+__s
+, int 
+__n
+,
+
+650 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+654 #ifdef 
+__USE_XOPEN2K8
+
+
+665 extern 
+_IO_ssize_t
+ 
+	$__getdelim
+ (char **
+__restrict
+ 
+__lineptr
+,
+
+666 
+size_t
+ *
+__restrict
+ 
+__n
+, int 
+__delimiter
+,
+
+667 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+668 extern 
+_IO_ssize_t
+ 
+	$getdelim
+ (char **
+__restrict
+ 
+__lineptr
+,
+
+669 
+size_t
+ *
+__restrict
+ 
+__n
+, int 
+__delimiter
+,
+
+670 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+678 extern 
+_IO_ssize_t
+ 
+	$getline
+ (char **
+__restrict
+ 
+__lineptr
+,
+
+679 
+size_t
+ *
+__restrict
+ 
+__n
+,
+
+680 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+684 
+__BEGIN_NAMESPACE_STD
+
+
+689 extern int 
+	`fputs
+ (const char *
+__restrict
+ 
+__s
+, 
+FILE
+ *__restrict 
+__stream
+);
+
+695 extern int 
+	`puts
+ (const char *
+__s
+);
+
+702 extern int 
+	`ungetc
+ (int 
+__c
+, 
+FILE
+ *
+__stream
+);
+
+709 extern 
+size_t
+ 
+	$fread
+ (void *
+__restrict
+ 
+__ptr
+, 
+size_t
+ 
+__size
+,
+
+710 
+size_t
+ 
+__n
+, 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+715 extern 
+size_t
+ 
+	`fwrite
+ (const void *
+__restrict
+ 
+__ptr
+, size_t 
+__size
+,
+
+716 
+size_t
+ 
+__n
+, 
+FILE
+ *
+__restrict
+ 
+__s
+);
+
+717 
+__END_NAMESPACE_STD
+
+
+719 #ifdef 
+__USE_GNU
+
+
+726 extern int 
+	`fputs_unlocked
+ (const char *
+__restrict
+ 
+__s
+,
+
+727 
+FILE
+ *
+__restrict
+ 
+__stream
+);
+
+730 #ifdef 
+__USE_MISC
+
+
+737 extern 
+size_t
+ 
+	$fread_unlocked
+ (void *
+__restrict
+ 
+__ptr
+, 
+size_t
+ 
+__size
+,
+
+738 
+size_t
+ 
+__n
+, 
+FILE
+ *
+__restrict
+ 
+__stream
+) 
+__wur
+;
+
+739 extern 
+size_t
+ 
+	`fwrite_unlocked
+ (const void *
+__restrict
+ 
+__ptr
+, size_t 
+__size
+,
+
+740 
+size_t
+ 
+__n
+, 
+FILE
+ *
+__restrict
+ 
+__stream
+);
+
+744 
+__BEGIN_NAMESPACE_STD
+
+
+749 extern int 
+	`fseek
+ (
+FILE
+ *
+__stream
+, long int 
+__off
+, int 
+__whence
+);
+
+754 extern long int 
+	$ftell
+ (
+FILE
+ *
+__stream
+) 
+__wur
+;
+
+759 extern void 
+	`rewind
+ (
+FILE
+ *
+__stream
+);
+
+760 
+__END_NAMESPACE_STD
+
+
+767 #if 
+defined
+ 
+__USE_LARGEFILE
+ || defined 
+__USE_XOPEN2K
+
+
+768 #ifndef 
+__USE_FILE_OFFSET64
+
+
+773 extern int 
+	`fseeko
+ (
+FILE
+ *
+__stream
+, 
+__off_t
+ 
+__off
+, int 
+__whence
+);
+
+778 extern 
+__off_t
+ 
+	$ftello
+ (
+FILE
+ *
+__stream
+) 
+__wur
+;
+
+780 #ifdef 
+__REDIRECT
+
+
+781 extern int 
+	`__REDIRECT
+ (
+fseeko
+,
+
+782 (
+FILE
+ *
+__stream
+, 
+__off64_t
+ 
+__off
+, int 
+__whence
+),
+
+783 
+fseeko64
+);
+
+784 extern 
+__off64_t
+ 
+	`__REDIRECT
+ (
+ftello
+, (
+FILE
+ *
+__stream
+), 
+ftello64
+);
+
+786 #define 
+	#fseeko
+ 
+fseeko64
+
+
+	)
+
+787 #define 
+	#ftello
+ 
+ftello64
+
+
+	)
+
+792 
+__BEGIN_NAMESPACE_STD
+
+
+793 #ifndef 
+__USE_FILE_OFFSET64
+
+
+798 extern int 
+	`fgetpos
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+, 
+fpos_t
+ *__restrict 
+__pos
+);
+
+803 extern int 
+	`fsetpos
+ (
+FILE
+ *
+__stream
+, const 
+fpos_t
+ *
+__pos
+);
+
+805 #ifdef 
+__REDIRECT
+
+
+806 extern int 
+	`__REDIRECT
+ (
+fgetpos
+, (
+FILE
+ *
+__restrict
+ 
+__stream
+,
+
+807 
+fpos_t
+ *
+__restrict
+ 
+__pos
+), 
+fgetpos64
+);
+
+808 extern int 
+	`__REDIRECT
+ (
+fsetpos
+,
+
+809 (
+FILE
+ *
+__stream
+, const 
+fpos_t
+ *
+__pos
+), 
+fsetpos64
+);
+
+811 #define 
+	#fgetpos
+ 
+fgetpos64
+
+
+	)
+
+812 #define 
+	#fsetpos
+ 
+fsetpos64
+
+
+	)
+
+815 
+__END_NAMESPACE_STD
+
+
+817 #ifdef 
+__USE_LARGEFILE64
+
+
+818 extern int 
+	`fseeko64
+ (
+FILE
+ *
+__stream
+, 
+__off64_t
+ 
+__off
+, int 
+__whence
+);
+
+819 extern 
+__off64_t
+ 
+	$ftello64
+ (
+FILE
+ *
+__stream
+) 
+__wur
+;
+
+820 extern int 
+	`fgetpos64
+ (
+FILE
+ *
+__restrict
+ 
+__stream
+, 
+fpos64_t
+ *__restrict 
+__pos
+);
+
+821 extern int 
+	`fsetpos64
+ (
+FILE
+ *
+__stream
+, const 
+fpos64_t
+ *
+__pos
+);
+
+824 
+__BEGIN_NAMESPACE_STD
+
+
+826 extern void 
+	$clearerr
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+;
+
+828 extern int 
+	$feof
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+830 extern int 
+	$ferror
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+831 
+__END_NAMESPACE_STD
+
+
+833 #ifdef 
+__USE_MISC
+
+
+835 extern void 
+	$clearerr_unlocked
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+;
+
+836 extern int 
+	$feof_unlocked
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+837 extern int 
+	$ferror_unlocked
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+841 
+__BEGIN_NAMESPACE_STD
+
+
+846 extern void 
+	`perror
+ (const char *
+__s
+);
+
+847 
+__END_NAMESPACE_STD
+
+
+853 #include 
+	~<bits/sys_errlist.h
+>
+
+856 #ifdef 
+__USE_POSIX
+
+
+858 extern int 
+	$fileno
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+861 #ifdef 
+__USE_MISC
+
+
+863 extern int 
+	$fileno_unlocked
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+867 #if (
+defined
+ 
+__USE_POSIX2
+ || defined 
+__USE_SVID
+ || defined 
+__USE_BSD
+ || \
+
+868 
+defined
+ 
+__USE_MISC
+)
+
+873 extern 
+FILE
+ *
+	$popen
+ (const char *
+__command
+, const char *
+__modes
+) 
+__wur
+;
+
+879 extern int 
+	`pclose
+ (
+FILE
+ *
+__stream
+);
+
+883 #ifdef 
+__USE_POSIX
+
+
+885 extern char *
+	$ctermid
+ (char *
+__s
+) 
+__THROW
+;
+
+889 #ifdef 
+__USE_XOPEN
+
+
+891 extern char *
+	`cuserid
+ (char *
+__s
+);
+
+895 #ifdef 
+__USE_GNU
+
+
+896 struct 
+obstack
+;
+
+899 extern int 
+	$obstack_printf
+ (struct 
+obstack
+ *
+__restrict
+ 
+__obstack
+,
+
+900 const char *
+__restrict
+ 
+__format
+, ...)
+
+901 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	`__format__
+ (
+__printf__
+, 2, 3)));
+
+902 extern int 
+	$obstack_vprintf
+ (struct 
+obstack
+ *
+__restrict
+ 
+__obstack
+,
+
+903 const char *
+__restrict
+ 
+__format
+,
+
+904 
+_G_va_list
+ 
+__args
+)
+
+905 
+__THROWNL
+ 
+	`__attribute__
+ ((
+	`__format__
+ (
+__printf__
+, 2, 0)));
+
+909 #if 
+defined
+ 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+913 extern void 
+	$flockfile
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+;
+
+917 extern int 
+	$ftrylockfile
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+ 
+__wur
+;
+
+920 extern void 
+	$funlockfile
+ (
+FILE
+ *
+__stream
+) 
+__THROW
+;
+
+923 #if 
+defined
+ 
+__USE_XOPEN
+ && !defined 
+__USE_XOPEN2K
+ && !defined 
+__USE_GNU
+
+
+927 #define 
+	#__need_getopt
+
+
+	)
+
+928 #include 
+	~<getopt.h
+>
+
+933 #ifdef 
+__USE_EXTERN_INLINES
+
+
+934 #include 
+	~<bits/stdio.h
+>
+
+936 #if 
+__USE_FORTIFY_LEVEL
+ > 0 && 
+defined
+ 
+__extern_always_inline
+
+
+937 #include 
+	~<bits/stdio2.h
+>
+
+939 #ifdef 
+__LDBL_COMPAT
+
+
+940 #include 
+	~<bits/stdio-ldbl.h
+>
+
+943 
+__END_DECLS
+
+
+	@/usr/include/time.h
+
+22 #ifndef 
+_TIME_H
+
+
+24 #if (! 
+defined
+ 
+__need_time_t
+ && !defined 
+__need_clock_t
+ && \
+
+25 ! 
+defined
+ 
+	g__need_timespec
+)
+
+26 #define 
+	#_TIME_H
+ 1
+
+	)
+
+27 #include 
+	~<features.h
+>
+
+29 
+	g__BEGIN_DECLS
+
+
+33 #ifdef 
+_TIME_H
+
+
+35 #define 
+	#__need_size_t
+
+
+	)
+
+36 #define 
+	#__need_NULL
+
+
+	)
+
+37 #include 
+	~<stddef.h
+>
+
+41 #include 
+	~<bits/time.h
+>
+
+44 #if !
+defined
+ 
+__STRICT_ANSI__
+ && !defined 
+__USE_XOPEN2K
+
+
+45 #ifndef 
+CLK_TCK
+
+
+46 #define 
+	#CLK_TCK
+ 
+CLOCKS_PER_SEC
+
+
+	)
+
+52 #if !
+defined
+ 
+__clock_t_defined
+ && (defined 
+_TIME_H
+ || defined 
+__need_clock_t
+)
+
+53 #define 
+	#__clock_t_defined
+ 1
+
+	)
+
+55 #include 
+	~<bits/types.h
+>
+
+57 
+__BEGIN_NAMESPACE_STD
+
+
+59 typedef 
+__clock_t
+ 
+	tclock_t
+;
+
+60 
+	g__END_NAMESPACE_STD
+
+
+61 #if 
+defined
+ 
+__USE_XOPEN
+ || defined 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+62 
+	$__USING_NAMESPACE_STD
+(
+clock_t
+)
+
+66 #undef 
+__need_clock_t
+
+
+68 #if !
+defined
+ 
+__time_t_defined
+ && (defined 
+_TIME_H
+ || defined 
+__need_time_t
+)
+
+69 #define 
+	#__time_t_defined
+ 1
+
+	)
+
+71 #include 
+	~<bits/types.h
+>
+
+73 
+__BEGIN_NAMESPACE_STD
+
+
+75 typedef 
+__time_t
+ 
+	ttime_t
+;
+
+76 
+__END_NAMESPACE_STD
+
+
+77 #if 
+defined
+ 
+__USE_POSIX
+ || defined 
+__USE_MISC
+ || defined 
+__USE_SVID
+
+
+78 
+	$__USING_NAMESPACE_STD
+(
+time_t
+)
+
+82 #undef 
+__need_time_t
+
+
+84 #if !
+defined
+ 
+__clockid_t_defined
+ && \
+
+85 ((
+defined
+ 
+_TIME_H
+ && defined 
+__USE_POSIX199309
+) || defined 
+__need_clockid_t
+)
+
+86 #define 
+	#__clockid_t_defined
+ 1
+
+	)
+
+88 #include 
+	~<bits/types.h
+>
+
+91 typedef 
+__clockid_t
+ 
+	tclockid_t
+;
+
+94 #undef 
+__clockid_time_t
+
+
+96 #if !
+defined
+ 
+__timer_t_defined
+ && \
+
+97 ((
+defined
+ 
+_TIME_H
+ && defined 
+__USE_POSIX199309
+) || defined 
+__need_timer_t
+)
+
+98 #define 
+	#__timer_t_defined
+ 1
+
+	)
+
+100 #include 
+	~<bits/types.h
+>
+
+103 typedef 
+__timer_t
+ 
+	ttimer_t
+;
+
+106 #undef 
+__need_timer_t
+
+
+109 #if (!
+defined
+ 
+__timespec_defined
+ \
+
+110 && ((
+defined
+ 
+_TIME_H
+ \
+
+111 && (
+defined
+ 
+__USE_POSIX199309
+ || defined 
+__USE_MISC
+ \
+
+112 || 
+defined
+ 
+__USE_ISOC11
+)) \
+
+113 || 
+defined
+ 
+__need_timespec
+))
+
+114 #define 
+	#__timespec_defined
+ 1
+
+	)
+
+116 #include 
+	~<bits/types.h
+>
+
+120 struct 
+	stimespec
+
+
+122 
+__time_t
+ 
+tv_sec
+;
+
+123 
+__syscall_slong_t
+ 
+tv_nsec
+;
+
+127 #undef 
+__need_timespec
+
+
+130 #ifdef 
+_TIME_H
+
+
+131 
+__BEGIN_NAMESPACE_STD
+
+
+133 struct 
+	stm
+
+
+135 int 
+tm_sec
+;
+
+136 int 
+tm_min
+;
+
+137 int 
+tm_hour
+;
+
+138 int 
+tm_mday
+;
+
+139 int 
+tm_mon
+;
+
+140 int 
+tm_year
+;
+
+141 int 
+tm_wday
+;
+
+142 int 
+tm_yday
+;
+
+143 int 
+tm_isdst
+;
+
+145 #ifdef 
+__USE_BSD
+
+
+146 long int 
+tm_gmtoff
+;
+
+147 const char *
+tm_zone
+;
+
+149 long int 
+__tm_gmtoff
+;
+
+150 const char *
+__tm_zone
+;
+
+153 
+__END_NAMESPACE_STD
+
+
+154 #if 
+defined
+ 
+__USE_XOPEN
+ || defined 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+155 
+	$__USING_NAMESPACE_STD
+(
+tm
+)
+
+159 #ifdef 
+__USE_POSIX199309
+
+
+161 struct 
+	sitimerspec
+
+
+163 struct 
+timespec
+ 
+it_interval
+;
+
+164 struct 
+timespec
+ 
+it_value
+;
+
+168 struct 
+sigevent
+;
+
+172 #ifdef 
+__USE_XOPEN2K
+
+
+173 #ifndef 
+__pid_t_defined
+
+
+174 typedef 
+__pid_t
+ 
+	tpid_t
+;
+
+175 #define 
+	#__pid_t_defined
+
+
+	)
+
+180 #ifdef 
+__USE_ISOC11
+
+
+182 #define 
+	#TIME_UTC
+ 1
+
+	)
+
+186 
+__BEGIN_NAMESPACE_STD
+
+
+189 extern 
+clock_t
+ 
+	$clock
+ (void) 
+__THROW
+;
+
+192 extern 
+time_t
+ 
+	$time
+ (
+time_t
+ *
+__timer
+) 
+__THROW
+;
+
+195 extern double 
+	$difftime
+ (
+time_t
+ 
+__time1
+, time_t 
+__time0
+)
+
+196 
+__THROW
+ 
+	`__attribute__
+ ((
+__const__
+));
+
+199 extern 
+time_t
+ 
+	$mktime
+ (struct 
+tm
+ *
+__tp
+) 
+__THROW
+;
+
+205 extern 
+size_t
+ 
+	$strftime
+ (char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__maxsize
+,
+
+206 const char *
+__restrict
+ 
+__format
+,
+
+207 const struct 
+tm
+ *
+__restrict
+ 
+__tp
+) 
+__THROW
+;
+
+208 
+__END_NAMESPACE_STD
+
+
+210 #ifdef 
+__USE_XOPEN
+
+
+213 extern char *
+	$strptime
+ (const char *
+__restrict
+ 
+__s
+,
+
+214 const char *
+__restrict
+ 
+__fmt
+, struct 
+tm
+ *
+__tp
+)
+
+215 
+__THROW
+;
+
+218 #ifdef 
+__USE_XOPEN2K8
+
+
+221 #include 
+	~<xlocale.h
+>
+
+223 extern 
+size_t
+ 
+	$strftime_l
+ (char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__maxsize
+,
+
+224 const char *
+__restrict
+ 
+__format
+,
+
+225 const struct 
+tm
+ *
+__restrict
+ 
+__tp
+,
+
+226 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+229 #ifdef 
+__USE_GNU
+
+
+230 extern char *
+	$strptime_l
+ (const char *
+__restrict
+ 
+__s
+,
+
+231 const char *
+__restrict
+ 
+__fmt
+, struct 
+tm
+ *
+__tp
+,
+
+232 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+236 
+__BEGIN_NAMESPACE_STD
+
+
+239 extern struct 
+tm
+ *
+	$gmtime
+ (const 
+time_t
+ *
+__timer
+) 
+__THROW
+;
+
+243 extern struct 
+tm
+ *
+	$localtime
+ (const 
+time_t
+ *
+__timer
+) 
+__THROW
+;
+
+244 
+__END_NAMESPACE_STD
+
+
+246 #if 
+defined
+ 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+249 extern struct 
+tm
+ *
+	$gmtime_r
+ (const 
+time_t
+ *
+__restrict
+ 
+__timer
+,
+
+250 struct 
+tm
+ *
+__restrict
+ 
+__tp
+) 
+__THROW
+;
+
+254 extern struct 
+tm
+ *
+	$localtime_r
+ (const 
+time_t
+ *
+__restrict
+ 
+__timer
+,
+
+255 struct 
+tm
+ *
+__restrict
+ 
+__tp
+) 
+__THROW
+;
+
+258 
+__BEGIN_NAMESPACE_STD
+
+
+261 extern char *
+	$asctime
+ (const struct 
+tm
+ *
+__tp
+) 
+__THROW
+;
+
+264 extern char *
+	$ctime
+ (const 
+time_t
+ *
+__timer
+) 
+__THROW
+;
+
+265 
+__END_NAMESPACE_STD
+
+
+267 #if 
+defined
+ 
+__USE_POSIX
+ || defined 
+__USE_MISC
+
+
+272 extern char *
+	$asctime_r
+ (const struct 
+tm
+ *
+__restrict
+ 
+__tp
+,
+
+273 char *
+__restrict
+ 
+__buf
+) 
+__THROW
+;
+
+276 extern char *
+	$ctime_r
+ (const 
+time_t
+ *
+__restrict
+ 
+__timer
+,
+
+277 char *
+__restrict
+ 
+__buf
+) 
+__THROW
+;
+
+282 extern char *
+__tzname
+[2];
+
+283 extern int 
+__daylight
+;
+
+284 extern long int 
+__timezone
+;
+
+287 #ifdef 
+__USE_POSIX
+
+
+289 extern char *
+tzname
+[2];
+
+293 extern void 
+	$tzset
+ (void) 
+__THROW
+;
+
+296 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_XOPEN
+
+
+297 extern int 
+daylight
+;
+
+298 extern long int 
+timezone
+;
+
+301 #ifdef 
+__USE_SVID
+
+
+304 extern int 
+	$stime
+ (const 
+time_t
+ *
+__when
+) 
+__THROW
+;
+
+310 #define 
+	#__isleap
+(
+year
+) \
+
+311 ((
+year
+) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
+
+	)
+
+314 #ifdef 
+__USE_MISC
+
+
+319 extern 
+time_t
+ 
+	$timegm
+ (struct 
+tm
+ *
+__tp
+) 
+__THROW
+;
+
+322 extern 
+time_t
+ 
+	$timelocal
+ (struct 
+tm
+ *
+__tp
+) 
+__THROW
+;
+
+325 extern int 
+	$dysize
+ (int 
+__year
+) 
+__THROW
+ 
+	`__attribute__
+ ((
+__const__
+));
+
+329 #ifdef 
+__USE_POSIX199309
+
+
+334 extern int 
+	`nanosleep
+ (const struct 
+timespec
+ *
+__requested_time
+,
+
+335 struct 
+timespec
+ *
+__remaining
+);
+
+339 extern int 
+	$clock_getres
+ (
+clockid_t
+ 
+__clock_id
+, struct 
+timespec
+ *
+__res
+) 
+__THROW
+;
+
+342 extern int 
+	$clock_gettime
+ (
+clockid_t
+ 
+__clock_id
+, struct 
+timespec
+ *
+__tp
+) 
+__THROW
+;
+
+345 extern int 
+	$clock_settime
+ (
+clockid_t
+ 
+__clock_id
+, const struct 
+timespec
+ *
+__tp
+)
+
+346 
+__THROW
+;
+
+348 #ifdef 
+__USE_XOPEN2K
+
+
+353 extern int 
+	`clock_nanosleep
+ (
+clockid_t
+ 
+__clock_id
+, int 
+__flags
+,
+
+354 const struct 
+timespec
+ *
+__req
+,
+
+355 struct 
+timespec
+ *
+__rem
+);
+
+358 extern int 
+	$clock_getcpuclockid
+ (
+pid_t
+ 
+__pid
+, 
+clockid_t
+ *
+__clock_id
+) 
+__THROW
+;
+
+363 extern int 
+	$timer_create
+ (
+clockid_t
+ 
+__clock_id
+,
+
+364 struct 
+sigevent
+ *
+__restrict
+ 
+__evp
+,
+
+365 
+timer_t
+ *
+__restrict
+ 
+__timerid
+) 
+__THROW
+;
+
+368 extern int 
+	$timer_delete
+ (
+timer_t
+ 
+__timerid
+) 
+__THROW
+;
+
+371 extern int 
+	$timer_settime
+ (
+timer_t
+ 
+__timerid
+, int 
+__flags
+,
+
+372 const struct 
+itimerspec
+ *
+__restrict
+ 
+__value
+,
+
+373 struct 
+itimerspec
+ *
+__restrict
+ 
+__ovalue
+) 
+__THROW
+;
+
+376 extern int 
+	$timer_gettime
+ (
+timer_t
+ 
+__timerid
+, struct 
+itimerspec
+ *
+__value
+)
+
+377 
+__THROW
+;
+
+380 extern int 
+	$timer_getoverrun
+ (
+timer_t
+ 
+__timerid
+) 
+__THROW
+;
+
+384 #ifdef 
+__USE_ISOC11
+
+
+386 extern int 
+	$timespec_get
+ (struct 
+timespec
+ *
+__ts
+, int 
+__base
+)
+
+387 
+__THROW
+ 
+	`__nonnull
+ ((1));
+
+391 #ifdef 
+__USE_XOPEN_EXTENDED
+
+
+403 extern int 
+getdate_err
+;
+
+412 extern struct 
+tm
+ *
+	`getdate
+ (const char *
+__string
+);
+
+415 #ifdef 
+__USE_GNU
+
+
+426 extern int 
+	`getdate_r
+ (const char *
+__restrict
+ 
+__string
+,
+
+427 struct 
+tm
+ *
+__restrict
+ 
+__resbufp
+);
+
+430 
+__END_DECLS
+
+
+	@/usr/include/features.h
+
+18 #ifndef 
+_FEATURES_H
+
+
+19 #define 
+	#_FEATURES_H
+ 1
+
+	)
+
+101 #undef 
+__USE_ISOC11
+
+
+102 #undef 
+__USE_ISOC99
+
+
+103 #undef 
+__USE_ISOC95
+
+
+104 #undef 
+__USE_ISOCXX11
+
+
+105 #undef 
+__USE_POSIX
+
+
+106 #undef 
+__USE_POSIX2
+
+
+107 #undef 
+__USE_POSIX199309
+
+
+108 #undef 
+__USE_POSIX199506
+
+
+109 #undef 
+__USE_XOPEN
+
+
+110 #undef 
+__USE_XOPEN_EXTENDED
+
+
+111 #undef 
+__USE_UNIX98
+
+
+112 #undef 
+__USE_XOPEN2K
+
+
+113 #undef 
+__USE_XOPEN2KXSI
+
+
+114 #undef 
+__USE_XOPEN2K8
+
+
+115 #undef 
+__USE_XOPEN2K8XSI
+
+
+116 #undef 
+__USE_LARGEFILE
+
+
+117 #undef 
+__USE_LARGEFILE64
+
+
+118 #undef 
+__USE_FILE_OFFSET64
+
+
+119 #undef 
+__USE_BSD
+
+
+120 #undef 
+__USE_SVID
+
+
+121 #undef 
+__USE_MISC
+
+
+122 #undef 
+__USE_ATFILE
+
+
+123 #undef 
+__USE_GNU
+
+
+124 #undef 
+__USE_REENTRANT
+
+
+125 #undef 
+__USE_FORTIFY_LEVEL
+
+
+126 #undef 
+__KERNEL_STRICT_NAMES
+
+
+130 #ifndef 
+_LOOSE_KERNEL_NAMES
+
+
+131 #define 
+	#__KERNEL_STRICT_NAMES
+
+
+	)
+
+141 #if 
+defined
+ 
+__GNUC__
+ && defined 
+__GNUC_MINOR__
+
+
+142 #define 
+	#__GNUC_PREREQ
+(
+maj
+, 
+min
+) \
+
+143 ((
+__GNUC__
+ << 16) + 
+__GNUC_MINOR__
+ >= ((
+maj
+) << 16) + (
+min
+))
+
+	)
+
+145 #define 
+	#__GNUC_PREREQ
+(
+maj
+, 
+min
+) 0
+
+	)
+
+150 #ifdef 
+_GNU_SOURCE
+
+
+151 #undef 
+_ISOC95_SOURCE
+
+
+152 #define 
+	#_ISOC95_SOURCE
+ 1
+
+	)
+
+153 #undef 
+_ISOC99_SOURCE
+
+
+154 #define 
+	#_ISOC99_SOURCE
+ 1
+
+	)
+
+155 #undef 
+_ISOC11_SOURCE
+
+
+156 #define 
+	#_ISOC11_SOURCE
+ 1
+
+	)
+
+157 #undef 
+_POSIX_SOURCE
+
+
+158 #define 
+	#_POSIX_SOURCE
+ 1
+
+	)
+
+159 #undef 
+_POSIX_C_SOURCE
+
+
+160 #define 
+	#_POSIX_C_SOURCE
+ 200809L
+
+	)
+
+161 #undef 
+_XOPEN_SOURCE
+
+
+162 #define 
+	#_XOPEN_SOURCE
+ 700
+
+	)
+
+163 #undef 
+_XOPEN_SOURCE_EXTENDED
+
+
+164 #define 
+	#_XOPEN_SOURCE_EXTENDED
+ 1
+
+	)
+
+165 #undef 
+_LARGEFILE64_SOURCE
+
+
+166 #define 
+	#_LARGEFILE64_SOURCE
+ 1
+
+	)
+
+167 #undef 
+_DEFAULT_SOURCE
+
+
+168 #define 
+	#_DEFAULT_SOURCE
+ 1
+
+	)
+
+169 #undef 
+_BSD_SOURCE
+
+
+170 #define 
+	#_BSD_SOURCE
+ 1
+
+	)
+
+171 #undef 
+_SVID_SOURCE
+
+
+172 #define 
+	#_SVID_SOURCE
+ 1
+
+	)
+
+173 #undef 
+_ATFILE_SOURCE
+
+
+174 #define 
+	#_ATFILE_SOURCE
+ 1
+
+	)
+
+179 #if (
+defined
+ 
+_DEFAULT_SOURCE
+ \
+
+180 || (!
+defined
+ 
+	g__STRICT_ANSI__
+ \
+
+181 && !
+defined
+ 
+	g_ISOC99_SOURCE
+ \
+
+182 && !
+defined
+ 
+	g_POSIX_SOURCE
+ && !defined 
+	g_POSIX_C_SOURCE
+ \
+
+183 && !
+defined
+ 
+	g_XOPEN_SOURCE
+ \
+
+184 && !
+defined
+ 
+	g_BSD_SOURCE
+ && !defined 
+	g_SVID_SOURCE
+))
+
+185 #undef 
+_DEFAULT_SOURCE
+
+
+186 #define 
+	#_DEFAULT_SOURCE
+ 1
+
+	)
+
+187 #undef 
+_BSD_SOURCE
+
+
+188 #define 
+	#_BSD_SOURCE
+ 1
+
+	)
+
+189 #undef 
+_SVID_SOURCE
+
+
+190 #define 
+	#_SVID_SOURCE
+ 1
+
+	)
+
+194 #if (
+defined
+ 
+_ISOC11_SOURCE
+ \
+
+195 || (
+defined
+ 
+	g__STDC_VERSION__
+ && __STDC_VERSION__ >= 201112L))
+
+196 #define 
+	#__USE_ISOC11
+ 1
+
+	)
+
+200 #if (
+defined
+ 
+_ISOC99_SOURCE
+ || defined 
+_ISOC11_SOURCE
+ \
+
+201 || (
+defined
+ 
+__STDC_VERSION__
+ && __STDC_VERSION__ >= 199901L))
+
+202 #define 
+	#__USE_ISOC99
+ 1
+
+	)
+
+206 #if (
+defined
+ 
+_ISOC99_SOURCE
+ || defined 
+_ISOC11_SOURCE
+ \
+
+207 || (
+defined
+ 
+__STDC_VERSION__
+ && __STDC_VERSION__ >= 199409L))
+
+208 #define 
+	#__USE_ISOC95
+ 1
+
+	)
+
+215 #if ((
+defined
+ 
+__cplusplus
+ && __cplusplus >= 201103L) \
+
+216 || 
+defined
+ 
+__GXX_EXPERIMENTAL_CXX0X__
+)
+
+217 #define 
+	#__USE_ISOCXX11
+ 1
+
+	)
+
+223 #ifdef 
+_DEFAULT_SOURCE
+
+
+224 #if !
+defined
+ 
+_POSIX_SOURCE
+ && !defined 
+_POSIX_C_SOURCE
+
+
+225 #define 
+	#__USE_POSIX_IMPLICITLY
+ 1
+
+	)
+
+227 #undef 
+_POSIX_SOURCE
+
+
+228 #define 
+	#_POSIX_SOURCE
+ 1
+
+	)
+
+229 #undef 
+_POSIX_C_SOURCE
+
+
+230 #define 
+	#_POSIX_C_SOURCE
+ 200809L
+
+	)
+
+232 #if ((!
+defined
+ 
+__STRICT_ANSI__
+ || (
+_XOPEN_SOURCE
+ - 0) >= 500) && \
+
+233 !
+defined
+ 
+_POSIX_SOURCE
+ && !defined 
+_POSIX_C_SOURCE
+)
+
+234 #define 
+	#_POSIX_SOURCE
+ 1
+
+	)
+
+235 #if 
+defined
+ 
+_XOPEN_SOURCE
+ && (_XOPEN_SOURCE - 0) < 500
+
+236 #define 
+	#_POSIX_C_SOURCE
+ 2
+
+	)
+
+237 #elif 
+defined
+ 
+_XOPEN_SOURCE
+ && (_XOPEN_SOURCE - 0) < 600
+
+238 #define 
+	#_POSIX_C_SOURCE
+ 199506L
+
+	)
+
+239 #elif 
+defined
+ 
+_XOPEN_SOURCE
+ && (_XOPEN_SOURCE - 0) < 700
+
+240 #define 
+	#_POSIX_C_SOURCE
+ 200112L
+
+	)
+
+242 #define 
+	#_POSIX_C_SOURCE
+ 200809L
+
+	)
+
+244 #define 
+	#__USE_POSIX_IMPLICITLY
+ 1
+
+	)
+
+247 #if 
+defined
+ 
+_POSIX_SOURCE
+ || 
+_POSIX_C_SOURCE
+ >= 1 || defined 
+_XOPEN_SOURCE
+
+
+248 #define 
+	#__USE_POSIX
+ 1
+
+	)
+
+251 #if 
+defined
+ 
+_POSIX_C_SOURCE
+ && _POSIX_C_SOURCE >= 2 || defined 
+_XOPEN_SOURCE
+
+
+252 #define 
+	#__USE_POSIX2
+ 1
+
+	)
+
+255 #if (
+_POSIX_C_SOURCE
+ - 0) >= 199309L
+
+256 #define 
+	#__USE_POSIX199309
+ 1
+
+	)
+
+259 #if (
+_POSIX_C_SOURCE
+ - 0) >= 199506L
+
+260 #define 
+	#__USE_POSIX199506
+ 1
+
+	)
+
+263 #if (
+_POSIX_C_SOURCE
+ - 0) >= 200112L
+
+264 #define 
+	#__USE_XOPEN2K
+ 1
+
+	)
+
+265 #undef 
+__USE_ISOC95
+
+
+266 #define 
+	#__USE_ISOC95
+ 1
+
+	)
+
+267 #undef 
+__USE_ISOC99
+
+
+268 #define 
+	#__USE_ISOC99
+ 1
+
+	)
+
+271 #if (
+_POSIX_C_SOURCE
+ - 0) >= 200809L
+
+272 #define 
+	#__USE_XOPEN2K8
+ 1
+
+	)
+
+273 #undef 
+_ATFILE_SOURCE
+
+
+274 #define 
+	#_ATFILE_SOURCE
+ 1
+
+	)
+
+277 #ifdef 
+_XOPEN_SOURCE
+
+
+278 #define 
+	#__USE_XOPEN
+ 1
+
+	)
+
+279 #if (
+_XOPEN_SOURCE
+ - 0) >= 500
+
+280 #define 
+	#__USE_XOPEN_EXTENDED
+ 1
+
+	)
+
+281 #define 
+	#__USE_UNIX98
+ 1
+
+	)
+
+282 #undef 
+_LARGEFILE_SOURCE
+
+
+283 #define 
+	#_LARGEFILE_SOURCE
+ 1
+
+	)
+
+284 #if (
+_XOPEN_SOURCE
+ - 0) >= 600
+
+285 #if (
+_XOPEN_SOURCE
+ - 0) >= 700
+
+286 #define 
+	#__USE_XOPEN2K8
+ 1
+
+	)
+
+287 #define 
+	#__USE_XOPEN2K8XSI
+ 1
+
+	)
+
+289 #define 
+	#__USE_XOPEN2K
+ 1
+
+	)
+
+290 #define 
+	#__USE_XOPEN2KXSI
+ 1
+
+	)
+
+291 #undef 
+__USE_ISOC95
+
+
+292 #define 
+	#__USE_ISOC95
+ 1
+
+	)
+
+293 #undef 
+__USE_ISOC99
+
+
+294 #define 
+	#__USE_ISOC99
+ 1
+
+	)
+
+297 #ifdef 
+_XOPEN_SOURCE_EXTENDED
+
+
+298 #define 
+	#__USE_XOPEN_EXTENDED
+ 1
+
+	)
+
+303 #ifdef 
+_LARGEFILE_SOURCE
+
+
+304 #define 
+	#__USE_LARGEFILE
+ 1
+
+	)
+
+307 #ifdef 
+_LARGEFILE64_SOURCE
+
+
+308 #define 
+	#__USE_LARGEFILE64
+ 1
+
+	)
+
+311 #if 
+defined
+ 
+_FILE_OFFSET_BITS
+ && _FILE_OFFSET_BITS == 64
+
+312 #define 
+	#__USE_FILE_OFFSET64
+ 1
+
+	)
+
+315 #if 
+defined
+ 
+_BSD_SOURCE
+ || defined 
+_SVID_SOURCE
+
+
+316 #define 
+	#__USE_MISC
+ 1
+
+	)
+
+319 #ifdef 
+_BSD_SOURCE
+
+
+320 #define 
+	#__USE_BSD
+ 1
+
+	)
+
+323 #ifdef 
+_SVID_SOURCE
+
+
+324 #define 
+	#__USE_SVID
+ 1
+
+	)
+
+327 #ifdef 
+_ATFILE_SOURCE
+
+
+328 #define 
+	#__USE_ATFILE
+ 1
+
+	)
+
+331 #ifdef 
+_GNU_SOURCE
+
+
+332 #define 
+	#__USE_GNU
+ 1
+
+	)
+
+335 #if 
+defined
+ 
+_REENTRANT
+ || defined 
+_THREAD_SAFE
+
+
+336 #define 
+	#__USE_REENTRANT
+ 1
+
+	)
+
+339 #if 
+defined
+ 
+_FORTIFY_SOURCE
+ && _FORTIFY_SOURCE > 0 \
+
+340 && 
+__GNUC_PREREQ
+ (4, 1) && 
+defined
+ 
+	g__OPTIMIZE__
+ && __OPTIMIZE__ > 0
+
+341 #if 
+_FORTIFY_SOURCE
+ > 1
+
+342 #define 
+	#__USE_FORTIFY_LEVEL
+ 2
+
+	)
+
+344 #define 
+	#__USE_FORTIFY_LEVEL
+ 1
+
+	)
+
+347 #define 
+	#__USE_FORTIFY_LEVEL
+ 0
+
+	)
+
+352 #include 
+	~<stdc-predef.h
+>
+
+360 #undef 
+__GNU_LIBRARY__
+
+
+361 #define 
+	#__GNU_LIBRARY__
+ 6
+
+	)
+
+365 #define 
+	#__GLIBC__
+ 2
+
+	)
+
+366 #define 
+	#__GLIBC_MINOR__
+ 19
+
+	)
+
+368 #define 
+	#__GLIBC_PREREQ
+(
+maj
+, 
+min
+) \
+
+369 ((
+__GLIBC__
+ << 16) + 
+__GLIBC_MINOR__
+ >= ((
+maj
+) << 16) + (
+min
+))
+
+	)
+
+372 #ifndef 
+__ASSEMBLER__
+
+
+373 #ifndef 
+_SYS_CDEFS_H
+
+
+374 #include 
+	~<sys/cdefs.h
+>
+
+379 #if 
+defined
+ 
+__USE_FILE_OFFSET64
+ && !defined 
+__REDIRECT
+
+
+380 #define 
+	#__USE_LARGEFILE
+ 1
+
+	)
+
+381 #define 
+	#__USE_LARGEFILE64
+ 1
+
+	)
+
+387 #if 
+__GNUC_PREREQ
+ (2, 7) && 
+defined
+ 
+__OPTIMIZE__
+ \
+
+388 && !
+defined
+ 
+	g__OPTIMIZE_SIZE__
+ && !defined 
+	g__NO_INLINE__
+ \
+
+389 && 
+defined
+ 
+	g__extern_inline
+
+
+390 #define 
+	#__USE_EXTERN_INLINES
+ 1
+
+	)
+
+398 #include 
+	~<gnu/stubs.h
+>
+
+	@/usr/include/getopt.h
+
+19 #ifndef 
+_GETOPT_H
+
+
+21 #ifndef 
+__need_getopt
+
+
+22 #define 
+	#_GETOPT_H
+ 1
+
+	)
+
+32 #if !
+defined
+ 
+__GNU_LIBRARY__
+
+
+33 #include 
+	~<ctype.h
+>
+
+36 #ifndef 
+__THROW
+
+
+37 #ifndef 
+__GNUC_PREREQ
+
+
+38 #define 
+	#__GNUC_PREREQ
+(
+maj
+, 
+min
+) (0)
+
+	)
+
+40 #if 
+defined
+ 
+__cplusplus
+ && 
+__GNUC_PREREQ
+ (2,8)
+
+41 #define 
+	#__THROW
+ 
+	`throw
+ ()
+
+	)
+
+43 #define 
+	#__THROW
+
+
+	)
+
+47 #ifdef 
+__cplusplus
+
+
+57 extern char *
+optarg
+;
+
+71 extern int 
+optind
+;
+
+76 extern int 
+opterr
+;
+
+80 extern int 
+optopt
+;
+
+82 #ifndef 
+__need_getopt
+
+
+104 struct 
+	soption
+
+
+106 const char *
+	gname
+;
+
+109 int 
+	ghas_arg
+;
+
+110 int *
+	gflag
+;
+
+111 int 
+	gval
+;
+
+116 #define 
+	#no_argument
+ 0
+
+	)
+
+117 #define 
+	#required_argument
+ 1
+
+	)
+
+118 #define 
+	#optional_argument
+ 2
+
+	)
+
+146 #ifdef 
+__GNU_LIBRARY__
+
+
+150 extern int 
+getopt
+ (int 
+___argc
+, char *const *
+___argv
+, const char *
+__shortopts
+)
+
+151 
+__THROW
+;
+
+153 #if 
+defined
+ 
+__need_getopt
+ && defined 
+__USE_POSIX2
+ \
+
+154 && !
+defined
+ 
+	g__USE_POSIX_IMPLICITLY
+ && !defined 
+	g__USE_GNU
+
+
+158 #ifdef 
+__REDIRECT
+
+
+159 extern int 
+__REDIRECT_NTH
+ (
+getopt
+, (int 
+___argc
+, char *const *
+___argv
+,
+
+160 const char *
+__shortopts
+),
+
+161 
+__posix_getopt
+);
+
+163 extern int 
+__posix_getopt
+ (int 
+___argc
+, char *const *
+___argv
+,
+
+164 const char *
+__shortopts
+) 
+__THROW
+;
+
+165 #define 
+	#getopt
+ 
+__posix_getopt
+
+
+	)
+
+169 extern int 
+getopt
+ ();
+
+172 #ifndef 
+__need_getopt
+
+
+173 extern int 
+getopt_long
+ (int 
+___argc
+, char *const *
+___argv
+,
+
+174 const char *
+__shortopts
+,
+
+175 const struct 
+option
+ *
+__longopts
+, int *
+__longind
+)
+
+176 
+__THROW
+;
+
+177 extern int 
+getopt_long_only
+ (int 
+___argc
+, char *const *
+___argv
+,
+
+178 const char *
+__shortopts
+,
+
+179 const struct 
+option
+ *
+__longopts
+, int *
+__longind
+)
+
+180 
+__THROW
+;
+
+184 #ifdef 
+__cplusplus
+
+
+189 #undef 
+__need_getopt
+
+
+	@/usr/include/libio.h
+
+28 #ifndef 
+_IO_STDIO_H
+
+
+29 #define 
+	#_IO_STDIO_H
+
+
+	)
+
+31 #include 
+	~<_G_config.h
+>
+
+33 #define 
+	#_IO_fpos_t
+ 
+_G_fpos_t
+
+
+	)
+
+34 #define 
+	#_IO_fpos64_t
+ 
+_G_fpos64_t
+
+
+	)
+
+35 #define 
+	#_IO_size_t
+ 
+size_t
+
+
+	)
+
+36 #define 
+	#_IO_ssize_t
+ 
+__ssize_t
+
+
+	)
+
+37 #define 
+	#_IO_off_t
+ 
+__off_t
+
+
+	)
+
+38 #define 
+	#_IO_off64_t
+ 
+__off64_t
+
+
+	)
+
+39 #define 
+	#_IO_pid_t
+ 
+__pid_t
+
+
+	)
+
+40 #define 
+	#_IO_uid_t
+ 
+__uid_t
+
+
+	)
+
+41 #define 
+	#_IO_iconv_t
+ 
+_G_iconv_t
+
+
+	)
+
+42 #define 
+	#_IO_HAVE_ST_BLKSIZE
+ 
+_G_HAVE_ST_BLKSIZE
+
+
+	)
+
+43 #define 
+	#_IO_BUFSIZ
+ 
+_G_BUFSIZ
+
+
+	)
+
+44 #define 
+	#_IO_va_list
+ 
+_G_va_list
+
+
+	)
+
+45 #define 
+	#_IO_wint_t
+ 
+wint_t
+
+
+	)
+
+48 #define 
+	#__need___va_list
+
+
+	)
+
+49 #include 
+	~<stdarg.h
+>
+
+50 #ifdef 
+__GNUC_VA_LIST
+
+
+51 #undef 
+_IO_va_list
+
+
+52 #define 
+	#_IO_va_list
+ 
+__gnuc_va_list
+
+
+	)
+
+55 #ifndef 
+__P
+
+
+56 #include 
+	~<sys/cdefs.h
+>
+
+59 #define 
+	#_IO_UNIFIED_JUMPTABLES
+ 1
+
+	)
+
+61 #ifndef 
+EOF
+
+
+62 #define 
+	#EOF
+ (-1)
+
+	)
+
+64 #ifndef 
+NULL
+
+
+65 #if 
+defined
+ 
+__GNUG__
+ && \
+
+66 (
+	g__GNUC__
+ > 2 || (__GNUC__ == 2 && 
+__GNUC_MINOR__
+ >= 8))
+
+67 #define 
+	#NULL
+ (
+__null
+)
+
+	)
+
+69 #if !
+defined
+(
+__cplusplus
+)
+
+70 #define 
+	#NULL
+ ((void*)0)
+
+	)
+
+72 #define 
+	#NULL
+ (0)
+
+	)
+
+77 #define 
+	#_IOS_INPUT
+ 1
+
+	)
+
+78 #define 
+	#_IOS_OUTPUT
+ 2
+
+	)
+
+79 #define 
+	#_IOS_ATEND
+ 4
+
+	)
+
+80 #define 
+	#_IOS_APPEND
+ 8
+
+	)
+
+81 #define 
+	#_IOS_TRUNC
+ 16
+
+	)
+
+82 #define 
+	#_IOS_NOCREATE
+ 32
+
+	)
+
+83 #define 
+	#_IOS_NOREPLACE
+ 64
+
+	)
+
+84 #define 
+	#_IOS_BIN
+ 128
+
+	)
+
+92 #define 
+	#_IO_MAGIC
+ 0xFBAD0000
+
+	)
+
+93 #define 
+	#_OLD_STDIO_MAGIC
+ 0xFABC0000
+
+	)
+
+94 #define 
+	#_IO_MAGIC_MASK
+ 0xFFFF0000
+
+	)
+
+95 #define 
+	#_IO_USER_BUF
+ 1
+
+	)
+
+96 #define 
+	#_IO_UNBUFFERED
+ 2
+
+	)
+
+97 #define 
+	#_IO_NO_READS
+ 4
+
+	)
+
+98 #define 
+	#_IO_NO_WRITES
+ 8
+
+	)
+
+99 #define 
+	#_IO_EOF_SEEN
+ 0x10
+
+	)
+
+100 #define 
+	#_IO_ERR_SEEN
+ 0x20
+
+	)
+
+101 #define 
+	#_IO_DELETE_DONT_CLOSE
+ 0x40
+
+	)
+
+102 #define 
+	#_IO_LINKED
+ 0x80
+
+	)
+
+103 #define 
+	#_IO_IN_BACKUP
+ 0x100
+
+	)
+
+104 #define 
+	#_IO_LINE_BUF
+ 0x200
+
+	)
+
+105 #define 
+	#_IO_TIED_PUT_GET
+ 0x400
+
+	)
+
+106 #define 
+	#_IO_CURRENTLY_PUTTING
+ 0x800
+
+	)
+
+107 #define 
+	#_IO_IS_APPENDING
+ 0x1000
+
+	)
+
+108 #define 
+	#_IO_IS_FILEBUF
+ 0x2000
+
+	)
+
+109 #define 
+	#_IO_BAD_SEEN
+ 0x4000
+
+	)
+
+110 #define 
+	#_IO_USER_LOCK
+ 0x8000
+
+	)
+
+112 #define 
+	#_IO_FLAGS2_MMAP
+ 1
+
+	)
+
+113 #define 
+	#_IO_FLAGS2_NOTCANCEL
+ 2
+
+	)
+
+114 #ifdef 
+_LIBC
+
+
+115 #define 
+	#_IO_FLAGS2_FORTIFY
+ 4
+
+	)
+
+117 #define 
+	#_IO_FLAGS2_USER_WBUF
+ 8
+
+	)
+
+118 #ifdef 
+_LIBC
+
+
+119 #define 
+	#_IO_FLAGS2_SCANF_STD
+ 16
+
+	)
+
+120 #define 
+	#_IO_FLAGS2_NOCLOSE
+ 32
+
+	)
+
+121 #define 
+	#_IO_FLAGS2_CLOEXEC
+ 64
+
+	)
+
+125 #define 
+	#_IO_SKIPWS
+ 01
+
+	)
+
+126 #define 
+	#_IO_LEFT
+ 02
+
+	)
+
+127 #define 
+	#_IO_RIGHT
+ 04
+
+	)
+
+128 #define 
+	#_IO_INTERNAL
+ 010
+
+	)
+
+129 #define 
+	#_IO_DEC
+ 020
+
+	)
+
+130 #define 
+	#_IO_OCT
+ 040
+
+	)
+
+131 #define 
+	#_IO_HEX
+ 0100
+
+	)
+
+132 #define 
+	#_IO_SHOWBASE
+ 0200
+
+	)
+
+133 #define 
+	#_IO_SHOWPOINT
+ 0400
+
+	)
+
+134 #define 
+	#_IO_UPPERCASE
+ 01000
+
+	)
+
+135 #define 
+	#_IO_SHOWPOS
+ 02000
+
+	)
+
+136 #define 
+	#_IO_SCIENTIFIC
+ 04000
+
+	)
+
+137 #define 
+	#_IO_FIXED
+ 010000
+
+	)
+
+138 #define 
+	#_IO_UNITBUF
+ 020000
+
+	)
+
+139 #define 
+	#_IO_STDIO
+ 040000
+
+	)
+
+140 #define 
+	#_IO_DONT_CLOSE
+ 0100000
+
+	)
+
+141 #define 
+	#_IO_BOOLALPHA
+ 0200000
+
+	)
+
+144 struct 
+_IO_jump_t
+; struct 
+	g_IO_FILE
+;
+
+147 #ifdef 
+_IO_MTSAFE_IO
+
+
+148 #if 
+defined
+ 
+__GLIBC__
+ && __GLIBC__ >= 2
+
+149 #include 
+	~<bits/stdio-lock.h
+>
+
+154 typedef void 
+	t_IO_lock_t
+;
+
+160 struct 
+	s_IO_marker
+ {
+
+161 struct 
+_IO_marker
+ *
+	m_next
+;
+
+162 struct 
+_IO_FILE
+ *
+	m_sbuf
+;
+
+166 int 
+	m_pos
+;
+
+168 void 
+set_streampos
+(
+streampos
+ 
+sp
+) { 
+	m_spos
+ = sp; }
+
+169 void 
+set_offset
+(int 
+offset
+) { 
+	m_pos
+ = offset; 
+	m_spos
+ = (
+streampos
+)(-2); }
+
+170 
+	mpublic
+:
+
+171 
+streammarker
+(
+streambuf
+ *
+sb
+);
+
+172 ~
+streammarker
+();
+
+173 int 
+saving
+() { return 
+	m_spos
+ == -2; }
+
+174 int 
+delta
+(
+streammarker
+&);
+
+175 int 
+delta
+();
+
+180 enum 
+	e__codecvt_result
+
+
+182 
+	m__codecvt_ok
+,
+
+183 
+	m__codecvt_partial
+,
+
+184 
+	m__codecvt_error
+,
+
+185 
+	m__codecvt_noconv
+
+
+188 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+191 struct 
+	s_IO_codecvt
+
+
+193 void (*
+	m__codecvt_destr
+) (struct 
+	m_IO_codecvt
+ *);
+
+194 enum 
+__codecvt_result
+ (*
+__codecvt_do_out
+) (struct 
+	m_IO_codecvt
+ *,
+
+195 
+	m__mbstate_t
+ *,
+
+196 const 
+	mwchar_t
+ *,
+
+197 const 
+	mwchar_t
+ *,
+
+198 const 
+	mwchar_t
+ **, char *,
+
+200 enum 
+__codecvt_result
+ (*
+__codecvt_do_unshift
+) (struct 
+	m_IO_codecvt
+ *,
+
+201 
+	m__mbstate_t
+ *, char *,
+
+203 enum 
+__codecvt_result
+ (*
+__codecvt_do_in
+) (struct 
+	m_IO_codecvt
+ *,
+
+204 
+	m__mbstate_t
+ *,
+
+206 const char **, 
+	mwchar_t
+ *,
+
+207 
+	mwchar_t
+ *, wchar_t **);
+
+208 int (*
+	m__codecvt_do_encoding
+) (struct 
+	m_IO_codecvt
+ *);
+
+209 int (*
+	m__codecvt_do_always_noconv
+) (struct 
+	m_IO_codecvt
+ *);
+
+210 int (*
+	m__codecvt_do_length
+) (struct 
+	m_IO_codecvt
+ *, 
+	m__mbstate_t
+ *,
+
+211 const char *, const char *, 
+	m_IO_size_t
+);
+
+212 int (*
+	m__codecvt_do_max_length
+) (struct 
+	m_IO_codecvt
+ *);
+
+214 
+_IO_iconv_t
+ 
+	m__cd_in
+;
+
+215 
+_IO_iconv_t
+ 
+	m__cd_out
+;
+
+219 struct 
+	s_IO_wide_data
+
+
+221 
+wchar_t
+ *
+	m_IO_read_ptr
+;
+
+222 
+wchar_t
+ *
+	m_IO_read_end
+;
+
+223 
+wchar_t
+ *
+	m_IO_read_base
+;
+
+224 
+wchar_t
+ *
+	m_IO_write_base
+;
+
+225 
+wchar_t
+ *
+	m_IO_write_ptr
+;
+
+226 
+wchar_t
+ *
+	m_IO_write_end
+;
+
+227 
+wchar_t
+ *
+	m_IO_buf_base
+;
+
+228 
+wchar_t
+ *
+	m_IO_buf_end
+;
+
+230 
+wchar_t
+ *
+	m_IO_save_base
+;
+
+231 
+wchar_t
+ *
+	m_IO_backup_base
+;
+
+233 
+wchar_t
+ *
+	m_IO_save_end
+;
+
+235 
+__mbstate_t
+ 
+	m_IO_state
+;
+
+236 
+__mbstate_t
+ 
+	m_IO_last_state
+;
+
+237 struct 
+_IO_codecvt
+ 
+	m_codecvt
+;
+
+239 
+wchar_t
+ 
+	m_shortbuf
+[1];
+
+241 const struct 
+_IO_jump_t
+ *
+	m_wide_vtable
+;
+
+245 struct 
+	s_IO_FILE
+ {
+
+246 int 
+	m_flags
+;
+
+247 #define 
+	#_IO_file_flags
+ 
+_flags
+
+
+	)
+
+251 char* 
+	m_IO_read_ptr
+;
+
+252 char* 
+	m_IO_read_end
+;
+
+253 char* 
+	m_IO_read_base
+;
+
+254 char* 
+	m_IO_write_base
+;
+
+255 char* 
+	m_IO_write_ptr
+;
+
+256 char* 
+	m_IO_write_end
+;
+
+257 char* 
+	m_IO_buf_base
+;
+
+258 char* 
+	m_IO_buf_end
+;
+
+260 char *
+	m_IO_save_base
+;
+
+261 char *
+	m_IO_backup_base
+;
+
+262 char *
+	m_IO_save_end
+;
+
+264 struct 
+_IO_marker
+ *
+	m_markers
+;
+
+266 struct 
+_IO_FILE
+ *
+	m_chain
+;
+
+268 int 
+	m_fileno
+;
+
+270 int 
+	m_blksize
+;
+
+272 int 
+	m_flags2
+;
+
+274 
+_IO_off_t
+ 
+	m_old_offset
+;
+
+276 #define 
+	#__HAVE_COLUMN
+
+
+	)
+
+278 unsigned short 
+	m_cur_column
+;
+
+279 signed char 
+	m_vtable_offset
+;
+
+280 char 
+	m_shortbuf
+[1];
+
+284 
+_IO_lock_t
+ *
+	m_lock
+;
+
+285 #ifdef 
+_IO_USE_OLD_IO_FILE
+
+
+288 struct 
+	s_IO_FILE_complete
+
+
+290 struct 
+_IO_FILE
+ 
+	m_file
+;
+
+292 #if 
+defined
+ 
+_G_IO_IO_FILE_VERSION
+ && _G_IO_IO_FILE_VERSION == 0x20001
+
+293 
+_IO_off64_t
+ 
+	m_offset
+;
+
+294 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+296 struct 
+_IO_codecvt
+ *
+	m_codecvt
+;
+
+297 struct 
+_IO_wide_data
+ *
+	m_wide_data
+;
+
+298 struct 
+_IO_FILE
+ *
+	m_freeres_list
+;
+
+299 void *
+	m_freeres_buf
+;
+
+300 
+size_t
+ 
+	m_freeres_size
+;
+
+302 void *
+	m__pad1
+;
+
+303 void *
+	m__pad2
+;
+
+304 void *
+	m__pad3
+;
+
+305 void *
+	m__pad4
+;
+
+306 
+size_t
+ 
+	m__pad5
+;
+
+308 int 
+	m_mode
+;
+
+310 char 
+	m_unused2
+[15 * sizeof (int) - 4 * sizeof (void *) - sizeof (
+size_t
+)];
+
+314 #ifndef 
+__cplusplus
+
+
+315 typedef struct 
+_IO_FILE
+ 
+	t_IO_FILE
+;
+
+318 struct 
+	g_IO_FILE_plus
+;
+
+320 extern struct 
+_IO_FILE_plus
+ 
+_IO_2_1_stdin_
+;
+
+321 extern struct 
+_IO_FILE_plus
+ 
+_IO_2_1_stdout_
+;
+
+322 extern struct 
+_IO_FILE_plus
+ 
+_IO_2_1_stderr_
+;
+
+323 #ifndef 
+_LIBC
+
+
+324 #define 
+	#_IO_stdin
+ ((
+_IO_FILE
+*)(&
+_IO_2_1_stdin_
+))
+
+	)
+
+325 #define 
+	#_IO_stdout
+ ((
+_IO_FILE
+*)(&
+_IO_2_1_stdout_
+))
+
+	)
+
+326 #define 
+	#_IO_stderr
+ ((
+_IO_FILE
+*)(&
+_IO_2_1_stderr_
+))
+
+	)
+
+328 extern 
+_IO_FILE
+ *
+_IO_stdin
+ 
+attribute_hidden
+;
+
+329 extern 
+_IO_FILE
+ *
+_IO_stdout
+ 
+attribute_hidden
+;
+
+330 extern 
+_IO_FILE
+ *
+_IO_stderr
+ 
+attribute_hidden
+;
+
+338 typedef 
+__ssize_t
+ 
+	t__io_read_fn
+ (void *
+	t__cookie
+, char *
+	t__buf
+, 
+	tsize_t
+ 
+	t__nbytes
+);
+
+346 typedef 
+__ssize_t
+ 
+	t__io_write_fn
+ (void *
+	t__cookie
+, const char *
+	t__buf
+,
+
+347 
+	tsize_t
+ 
+	t__n
+);
+
+355 typedef int 
+	t__io_seek_fn
+ (void *
+	t__cookie
+, 
+	t_IO_off64_t
+ *
+	t__pos
+, int 
+	t__w
+);
+
+358 typedef int 
+	t__io_close_fn
+ (void *
+	t__cookie
+);
+
+361 #ifdef 
+_GNU_SOURCE
+
+
+363 typedef 
+__io_read_fn
+ 
+	tcookie_read_function_t
+;
+
+364 typedef 
+__io_write_fn
+ 
+	tcookie_write_function_t
+;
+
+365 typedef 
+__io_seek_fn
+ 
+	tcookie_seek_function_t
+;
+
+366 typedef 
+__io_close_fn
+ 
+	tcookie_close_function_t
+;
+
+371 
+__io_read_fn
+ *
+	mread
+;
+
+372 
+__io_write_fn
+ *
+	mwrite
+;
+
+373 
+__io_seek_fn
+ *
+	mseek
+;
+
+374 
+__io_close_fn
+ *
+	mclose
+;
+
+375 } 
+	t_IO_cookie_io_functions_t
+;
+
+376 typedef 
+_IO_cookie_io_functions_t
+ 
+	tcookie_io_functions_t
+;
+
+378 struct 
+	g_IO_cookie_file
+;
+
+381 extern void 
+_IO_cookie_init
+ (struct 
+_IO_cookie_file
+ *
+__cfile
+, int 
+__read_write
+,
+
+382 void *
+__cookie
+, 
+_IO_cookie_io_functions_t
+ 
+__fns
+);
+
+386 #ifdef 
+__cplusplus
+
+
+390 extern int 
+__underflow
+ (
+_IO_FILE
+ *);
+
+391 extern int 
+__uflow
+ (
+_IO_FILE
+ *);
+
+392 extern int 
+__overflow
+ (
+_IO_FILE
+ *, int);
+
+393 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+394 extern 
+_IO_wint_t
+ 
+__wunderflow
+ (
+_IO_FILE
+ *);
+
+395 extern 
+_IO_wint_t
+ 
+__wuflow
+ (
+_IO_FILE
+ *);
+
+396 extern 
+_IO_wint_t
+ 
+__woverflow
+ (
+_IO_FILE
+ *, _IO_wint_t);
+
+399 #if 
+__GNUC__
+ >= 3
+
+400 #define 
+	#_IO_BE
+(
+expr
+, 
+res
+) 
+	`__builtin_expect
+ ((expr), res)
+
+	)
+
+402 #define 
+	#_IO_BE
+(
+expr
+, 
+res
+) (expr)
+
+	)
+
+405 #define 
+	#_IO_getc_unlocked
+(
+_fp
+) \
+
+406 (
+	`_IO_BE
+ ((
+_fp
+)->
+_IO_read_ptr
+ >= (_fp)->
+_IO_read_end
+, 0) \
+
+407 ? 
+	`__uflow
+ (
+_fp
+) : *(unsigned char *) (_fp)->
+_IO_read_ptr
+++)
+
+	)
+
+408 #define 
+	#_IO_peekc_unlocked
+(
+_fp
+) \
+
+409 (
+	`_IO_BE
+ ((
+_fp
+)->
+_IO_read_ptr
+ >= (_fp)->
+_IO_read_end
+, 0) \
+
+410 && 
+	`__underflow
+ (
+_fp
+) == 
+EOF
+ ? EOF \
+
+411 : *(unsigned char *) (
+_fp
+)->
+_IO_read_ptr
+)
+
+	)
+
+412 #define 
+	#_IO_putc_unlocked
+(
+_ch
+, 
+_fp
+) \
+
+413 (
+	`_IO_BE
+ ((
+_fp
+)->
+_IO_write_ptr
+ >= (_fp)->
+_IO_write_end
+, 0) \
+
+414 ? 
+	`__overflow
+ (
+_fp
+, (unsigned char) (
+_ch
+)) \
+
+415 : (unsigned char) (*(
+_fp
+)->
+_IO_write_ptr
+++ = (
+_ch
+)))
+
+	)
+
+417 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+418 #define 
+	#_IO_getwc_unlocked
+(
+_fp
+) \
+
+419 (
+	`_IO_BE
+ ((
+_fp
+)->
+_wide_data
+ == 
+NULL
+ \
+
+420 || ((
+_fp
+)->
+_wide_data
+->
+_IO_read_ptr
+ \
+
+421 >= (
+_fp
+)->
+_wide_data
+->
+_IO_read_end
+), 0) \
+
+422 ? 
+	`__wuflow
+ (
+_fp
+) : (
+_IO_wint_t
+) *(_fp)->
+_wide_data
+->
+_IO_read_ptr
+++)
+
+	)
+
+423 #define 
+	#_IO_putwc_unlocked
+(
+_wch
+, 
+_fp
+) \
+
+424 (
+	`_IO_BE
+ ((
+_fp
+)->
+_wide_data
+ == 
+NULL
+ \
+
+425 || ((
+_fp
+)->
+_wide_data
+->
+_IO_write_ptr
+ \
+
+426 >= (
+_fp
+)->
+_wide_data
+->
+_IO_write_end
+), 0) \
+
+427 ? 
+	`__woverflow
+ (
+_fp
+, 
+_wch
+) \
+
+428 : (
+_IO_wint_t
+) (*(
+_fp
+)->
+_wide_data
+->
+_IO_write_ptr
+++ = (
+_wch
+)))
+
+	)
+
+431 #define 
+	#_IO_feof_unlocked
+(
+__fp
+) (((__fp)->
+_flags
+ & 
+_IO_EOF_SEEN
+) != 0)
+
+	)
+
+432 #define 
+	#_IO_ferror_unlocked
+(
+__fp
+) (((__fp)->
+_flags
+ & 
+_IO_ERR_SEEN
+) != 0)
+
+	)
+
+434 extern int 
+_IO_getc
+ (
+_IO_FILE
+ *
+__fp
+);
+
+435 extern int 
+_IO_putc
+ (int 
+__c
+, 
+_IO_FILE
+ *
+__fp
+);
+
+436 extern int 
+_IO_feof
+ (
+_IO_FILE
+ *
+__fp
+) 
+__THROW
+;
+
+437 extern int 
+_IO_ferror
+ (
+_IO_FILE
+ *
+__fp
+) 
+__THROW
+;
+
+439 extern int 
+_IO_peekc_locked
+ (
+_IO_FILE
+ *
+__fp
+);
+
+442 #define 
+	#_IO_PENDING_OUTPUT_COUNT
+(
+_fp
+) \
+
+443 ((
+_fp
+)->
+_IO_write_ptr
+ - (_fp)->
+_IO_write_base
+)
+
+	)
+
+445 extern void 
+_IO_flockfile
+ (
+_IO_FILE
+ *) 
+__THROW
+;
+
+446 extern void 
+_IO_funlockfile
+ (
+_IO_FILE
+ *) 
+__THROW
+;
+
+447 extern int 
+_IO_ftrylockfile
+ (
+_IO_FILE
+ *) 
+__THROW
+;
+
+449 #ifdef 
+_IO_MTSAFE_IO
+
+
+450 #define 
+	#_IO_peekc
+(
+_fp
+) 
+	`_IO_peekc_locked
+ (_fp)
+
+	)
+
+451 #define 
+	#_IO_flockfile
+(
+_fp
+) \
+
+452 if (((
+_fp
+)->
+_flags
+ & 
+_IO_USER_LOCK
+) == 0) 
+	`_IO_flockfile
+ (_fp)
+
+	)
+
+453 #define 
+	#_IO_funlockfile
+(
+_fp
+) \
+
+454 if (((
+_fp
+)->
+_flags
+ & 
+_IO_USER_LOCK
+) == 0) 
+	`_IO_funlockfile
+ (_fp)
+
+	)
+
+456 #define 
+	#_IO_peekc
+(
+_fp
+) 
+	`_IO_peekc_unlocked
+ (_fp)
+
+	)
+
+457 #define 
+	#_IO_flockfile
+(
+_fp
+)
+
+	)
+
+458 #define 
+	#_IO_funlockfile
+(
+_fp
+)
+
+	)
+
+459 #define 
+	#_IO_ftrylockfile
+(
+_fp
+)
+
+	)
+
+460 #define 
+	#_IO_cleanup_region_start
+(
+_fct
+, 
+_fp
+)
+
+	)
+
+461 #define 
+	#_IO_cleanup_region_end
+(
+_Doit
+)
+
+	)
+
+464 extern int 
+_IO_vfscanf
+ (
+_IO_FILE
+ * 
+__restrict
+, const char * __restrict,
+
+465 
+_IO_va_list
+, int *
+__restrict
+);
+
+466 extern int 
+_IO_vfprintf
+ (
+_IO_FILE
+ *
+__restrict
+, const char *__restrict,
+
+467 
+_IO_va_list
+);
+
+468 extern 
+_IO_ssize_t
+ 
+_IO_padn
+ (
+_IO_FILE
+ *, int, _IO_ssize_t);
+
+469 extern 
+_IO_size_t
+ 
+_IO_sgetn
+ (
+_IO_FILE
+ *, void *, _IO_size_t);
+
+471 extern 
+_IO_off64_t
+ 
+_IO_seekoff
+ (
+_IO_FILE
+ *, _IO_off64_t, int, int);
+
+472 extern 
+_IO_off64_t
+ 
+_IO_seekpos
+ (
+_IO_FILE
+ *, _IO_off64_t, int);
+
+474 extern void 
+_IO_free_backup_area
+ (
+_IO_FILE
+ *) 
+__THROW
+;
+
+476 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+477 extern 
+_IO_wint_t
+ 
+_IO_getwc
+ (
+_IO_FILE
+ *
+__fp
+);
+
+478 extern 
+_IO_wint_t
+ 
+_IO_putwc
+ (
+wchar_t
+ 
+__wc
+, 
+_IO_FILE
+ *
+__fp
+);
+
+479 extern int 
+_IO_fwide
+ (
+_IO_FILE
+ *
+__fp
+, int 
+__mode
+) 
+__THROW
+;
+
+480 #if 
+__GNUC__
+ >= 2
+
+483 #if 
+defined
+ 
+_LIBC
+ && defined 
+SHARED
+
+
+484 #include 
+	~<shlib-compat.h
+>
+
+485 #if 
+SHLIB_COMPAT
+ (
+libc
+, 
+GLIBC_2_0
+, 
+GLIBC_2_1
+)
+
+486 #define 
+	#_IO_fwide_maybe_incompatible
+ \
+
+487 (
+	`__builtin_expect
+ (&
+_IO_stdin_used
+ == 
+NULL
+, 0))
+
+	)
+
+488 extern const int 
+_IO_stdin_used
+;
+
+489 
+weak_extern
+ (
+_IO_stdin_used
+);
+
+492 #ifndef 
+_IO_fwide_maybe_incompatible
+
+
+493 #define 
+	#_IO_fwide_maybe_incompatible
+ (0)
+
+	)
+
+497 #define 
+	#_IO_fwide
+(
+__fp
+, 
+__mode
+) \
+
+498 ({ int 
+__result
+ = (
+__mode
+); \
+
+499 if (
+__result
+ < 0 && ! 
+_IO_fwide_maybe_incompatible
+) \
+
+501 if ((
+__fp
+)->
+_mode
+ == 0) \
+
+503 (
+__fp
+)->
+_mode
+ = -1; \
+
+504 
+__result
+ = (
+__fp
+)->
+_mode
+; \
+
+506 else if (
+	`__builtin_constant_p
+ (
+__mode
+) && (__mode) == 0) \
+
+507 
+__result
+ = 
+_IO_fwide_maybe_incompatible
+ ? -1 : (
+__fp
+)->
+_mode
+; \
+
+509 
+__result
+ = 
+	`_IO_fwide
+ (
+__fp
+, __result); \
+
+510 
+__result
+; })
+
+	)
+
+513 extern int 
+_IO_vfwscanf
+ (
+_IO_FILE
+ * 
+__restrict
+, const 
+wchar_t
+ * __restrict,
+
+514 
+_IO_va_list
+, int *
+__restrict
+);
+
+515 extern int 
+_IO_vfwprintf
+ (
+_IO_FILE
+ *
+__restrict
+, const 
+wchar_t
+ *__restrict,
+
+516 
+_IO_va_list
+);
+
+517 extern 
+_IO_ssize_t
+ 
+_IO_wpadn
+ (
+_IO_FILE
+ *, 
+wint_t
+, _IO_ssize_t);
+
+518 extern void 
+_IO_free_wbackup_area
+ (
+_IO_FILE
+ *) 
+__THROW
+;
+
+521 #ifdef 
+__LDBL_COMPAT
+
+
+522 #include 
+	~<bits/libio-ldbl.h
+>
+
+525 #ifdef 
+__cplusplus
+
+
+	@/usr/include/xlocale.h
+
+20 #ifndef 
+_XLOCALE_H
+
+
+21 #define 
+	#_XLOCALE_H
+ 1
+
+	)
+
+27 typedef struct 
+	s__locale_struct
+
+
+30 struct 
+__locale_data
+ *
+	m__locales
+[13];
+
+33 const unsigned short int *
+	m__ctype_b
+;
+
+34 const int *
+	m__ctype_tolower
+;
+
+35 const int *
+	m__ctype_toupper
+;
+
+38 const char *
+	m__names
+[13];
+
+39 } *
+	t__locale_t
+;
+
+42 typedef 
+__locale_t
+ 
+	tlocale_t
+;
+
+	@/usr/include/_G_config.h
+
+4 #ifndef 
+_G_config_h
+
+
+5 #define 
+	#_G_config_h
+ 1
+
+	)
+
+9 #include 
+	~<bits/types.h
+>
+
+10 #define 
+	#__need_size_t
+
+
+	)
+
+11 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+12 #define 
+	#__need_wchar_t
+
+
+	)
+
+14 #define 
+	#__need_NULL
+
+
+	)
+
+15 #include 
+	~<stddef.h
+>
+
+16 #define 
+	#__need_mbstate_t
+
+
+	)
+
+17 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+18 #define 
+	#__need_wint_t
+
+
+	)
+
+20 #include 
+	~<wchar.h
+>
+
+23 
+__off_t
+ 
+	m__pos
+;
+
+24 
+__mbstate_t
+ 
+	m__state
+;
+
+25 } 
+	t_G_fpos_t
+;
+
+28 
+__off64_t
+ 
+	m__pos
+;
+
+29 
+__mbstate_t
+ 
+	m__state
+;
+
+30 } 
+	t_G_fpos64_t
+;
+
+31 #if 
+defined
+ 
+_LIBC
+ || defined 
+_GLIBCPP_USE_WCHAR_T
+
+
+32 #include 
+	~<gconv.h
+>
+
+35 struct 
+__gconv_info
+ 
+	m__cd
+;
+
+38 struct 
+__gconv_info
+ 
+	m__cd
+;
+
+39 struct 
+__gconv_step_data
+ 
+	m__data
+;
+
+40 } 
+	m__combined
+;
+
+41 } 
+	t_G_iconv_t
+;
+
+46 #define 
+	#_G_va_list
+ 
+__gnuc_va_list
+
+
+	)
+
+48 #define 
+	#_G_HAVE_MMAP
+ 1
+
+	)
+
+49 #define 
+	#_G_HAVE_MREMAP
+ 1
+
+	)
+
+51 #define 
+	#_G_IO_IO_FILE_VERSION
+ 0x20001
+
+	)
+
+54 #define 
+	#_G_HAVE_ST_BLKSIZE
+ 
+	`defined
+ (
+_STATBUF_ST_BLKSIZE
+)
+
+	)
+
+56 #define 
+	#_G_BUFSIZ
+ 8192
+
+	)
+
+	@/usr/include/ctype.h
+
+22 #ifndef 
+_CTYPE_H
+
+
+23 #define 
+	#_CTYPE_H
+ 1
+
+	)
+
+25 #include 
+	~<features.h
+>
+
+26 #include 
+	~<bits/types.h
+>
+
+28 
+	g__BEGIN_DECLS
+
+
+30 #ifndef 
+_ISbit
+
+
+39 #include 
+	~<endian.h
+>
+
+40 #if 
+__BYTE_ORDER
+ == 
+__BIG_ENDIAN
+
+
+41 #define 
+	#_ISbit
+(
+bit
+) (1 << (bit))
+
+	)
+
+43 #define 
+	#_ISbit
+(
+bit
+) ((bit) < 8 ? ((1 << (bit)) << 8) : ((1 << (bit)) >> 8))
+
+	)
+
+48 
+	m_ISupper
+ = 
+_ISbit
+ (0),
+
+49 
+	m_ISlower
+ = 
+_ISbit
+ (1),
+
+50 
+	m_ISalpha
+ = 
+_ISbit
+ (2),
+
+51 
+	m_ISdigit
+ = 
+_ISbit
+ (3),
+
+52 
+	m_ISxdigit
+ = 
+_ISbit
+ (4),
+
+53 
+	m_ISspace
+ = 
+_ISbit
+ (5),
+
+54 
+	m_ISprint
+ = 
+_ISbit
+ (6),
+
+55 
+	m_ISgraph
+ = 
+_ISbit
+ (7),
+
+56 
+	m_ISblank
+ = 
+_ISbit
+ (8),
+
+57 
+	m_IScntrl
+ = 
+_ISbit
+ (9),
+
+58 
+	m_ISpunct
+ = 
+_ISbit
+ (10),
+
+59 
+	m_ISalnum
+ = 
+_ISbit
+ (11)
+
+79 extern const unsigned short int **
+	$__ctype_b_loc
+ (void)
+
+80 
+__THROW
+ 
+	`__attribute__
+ ((
+__const__
+));
+
+81 extern const 
+__int32_t
+ **
+	$__ctype_tolower_loc
+ (void)
+
+82 
+__THROW
+ 
+	`__attribute__
+ ((
+__const__
+));
+
+83 extern const 
+__int32_t
+ **
+	$__ctype_toupper_loc
+ (void)
+
+84 
+__THROW
+ 
+	`__attribute__
+ ((
+__const__
+));
+
+87 #ifndef 
+__cplusplus
+
+
+88 #define 
+	#__isctype
+(
+c
+, 
+type
+) \
+
+89 ((*
+	`__ctype_b_loc
+ ())[(int) (
+c
+)] & (unsigned short int) 
+type
+)
+
+	)
+
+90 #elif 
+defined
+ 
+__USE_EXTERN_INLINES
+
+
+91 #define 
+	#__isctype_f
+(
+type
+) \
+
+92 
+__extern_inline
+ int \
+
+93 
+is
+##
+	`type
+ (int 
+__c
+) 
+__THROW
+ \
+
+95 return (*
+	`__ctype_b_loc
+ ())[(int) (
+__c
+)] & (unsigned short int) 
+_IS
+##
+type
+; \
+
+96 
+	}
+
+	)
+}
+
+99 #define 
+	#__isascii
+(
+c
+) (((c) & ~0x7f) == 0)
+
+	)
+
+100 #define 
+	#__toascii
+(
+c
+) ((c) & 0x7f)
+
+	)
+
+102 #define 
+	#__exctype
+(
+name
+) extern int 
+	`name
+ (int) 
+__THROW
+
+
+	)
+
+104 
+__BEGIN_NAMESPACE_STD
+
+
+110 
+__exctype
+ (
+isalnum
+);
+
+111 
+__exctype
+ (
+isalpha
+);
+
+112 
+__exctype
+ (
+iscntrl
+);
+
+113 
+__exctype
+ (
+isdigit
+);
+
+114 
+__exctype
+ (
+islower
+);
+
+115 
+__exctype
+ (
+isgraph
+);
+
+116 
+__exctype
+ (
+isprint
+);
+
+117 
+__exctype
+ (
+ispunct
+);
+
+118 
+__exctype
+ (
+isspace
+);
+
+119 
+__exctype
+ (
+isupper
+);
+
+120 
+__exctype
+ (
+isxdigit
+);
+
+124 extern int 
+	$tolower
+ (int 
+__c
+) 
+__THROW
+;
+
+127 extern int 
+	$toupper
+ (int 
+__c
+) 
+__THROW
+;
+
+129 
+__END_NAMESPACE_STD
+
+
+133 #ifdef 
+__USE_ISOC99
+
+
+134 
+__BEGIN_NAMESPACE_C99
+
+
+136 
+	`__exctype
+ (
+isblank
+);
+
+138 
+__END_NAMESPACE_C99
+
+
+141 #ifdef 
+__USE_GNU
+
+
+143 extern int 
+	$isctype
+ (int 
+__c
+, int 
+__mask
+) 
+__THROW
+;
+
+146 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_MISC
+ || defined 
+__USE_XOPEN
+
+
+150 extern int 
+	$isascii
+ (int 
+__c
+) 
+__THROW
+;
+
+154 extern int 
+	$toascii
+ (int 
+__c
+) 
+__THROW
+;
+
+158 
+	`__exctype
+ (
+_toupper
+);
+
+159 
+	`__exctype
+ (
+_tolower
+);
+
+163 #define 
+	#__tobody
+(
+c
+, 
+f
+, 
+a
+, 
+args
+) \
+
+164 (
+__extension__
+ \
+
+165 ({ int 
+__res
+; \
+
+166 if (sizeof (
+c
+) > 1) \
+
+168 if (
+	`__builtin_constant_p
+ (
+c
+)) \
+
+170 int 
+__c
+ = (
+c
+); \
+
+171 
+__res
+ = 
+__c
+ < -128 || __c > 255 ? __c : (
+a
+)[__c]; \
+
+174 
+__res
+ = 
+f
+ 
+args
+; \
+
+177 
+__res
+ = (
+a
+)[(int) (
+c
+)]; \
+
+178 
+__res
+; 
+	}
+}))
+
+	)
+
+180 #if !
+defined
+ 
+__NO_CTYPE
+
+
+181 #ifdef 
+__isctype_f
+
+
+182 
+	$__isctype_f
+ (
+alnum
+)
+
+183 
+	$__isctype_f
+ (
+alpha
+)
+
+184 
+	$__isctype_f
+ (
+cntrl
+)
+
+185 
+	$__isctype_f
+ (
+digit
+)
+
+186 
+	$__isctype_f
+ (
+lower
+)
+
+187 
+	$__isctype_f
+ (
+graph
+)
+
+188 
+	$__isctype_f
+ (
+print
+)
+
+189 
+	$__isctype_f
+ (
+punct
+)
+
+190 
+	$__isctype_f
+ (
+space
+)
+
+191 
+	$__isctype_f
+ (
+upper
+)
+
+192 
+	$__isctype_f
+ (
+xdigit
+)
+
+193 #ifdef 
+__USE_ISOC99
+
+
+194 
+	$__isctype_f
+ (
+blank
+)
+
+196 #elif 
+defined
+ 
+__isctype
+
+
+197 #define 
+	#isalnum
+(
+c
+) 
+	`__isctype
+((c), 
+_ISalnum
+)
+
+	)
+
+198 #define 
+	#isalpha
+(
+c
+) 
+	`__isctype
+((c), 
+_ISalpha
+)
+
+	)
+
+199 #define 
+	#iscntrl
+(
+c
+) 
+	`__isctype
+((c), 
+_IScntrl
+)
+
+	)
+
+200 #define 
+	#isdigit
+(
+c
+) 
+	`__isctype
+((c), 
+_ISdigit
+)
+
+	)
+
+201 #define 
+	#islower
+(
+c
+) 
+	`__isctype
+((c), 
+_ISlower
+)
+
+	)
+
+202 #define 
+	#isgraph
+(
+c
+) 
+	`__isctype
+((c), 
+_ISgraph
+)
+
+	)
+
+203 #define 
+	#isprint
+(
+c
+) 
+	`__isctype
+((c), 
+_ISprint
+)
+
+	)
+
+204 #define 
+	#ispunct
+(
+c
+) 
+	`__isctype
+((c), 
+_ISpunct
+)
+
+	)
+
+205 #define 
+	#isspace
+(
+c
+) 
+	`__isctype
+((c), 
+_ISspace
+)
+
+	)
+
+206 #define 
+	#isupper
+(
+c
+) 
+	`__isctype
+((c), 
+_ISupper
+)
+
+	)
+
+207 #define 
+	#isxdigit
+(
+c
+) 
+	`__isctype
+((c), 
+_ISxdigit
+)
+
+	)
+
+208 #ifdef 
+__USE_ISOC99
+
+
+209 #define 
+	#isblank
+(
+c
+) 
+	`__isctype
+((c), 
+_ISblank
+)
+
+	)
+
+213 #ifdef 
+__USE_EXTERN_INLINES
+
+
+214 
+__extern_inline
+ int
+
+215 
+	`__NTH
+ (
+	$tolower
+ (int 
+__c
+))
+
+217 return 
+__c
+ >= -128 && __c < 256 ? (*
+	`__ctype_tolower_loc
+ ())[__c] : __c;
+
+218 
+	}
+}
+
+220 
+__extern_inline
+ int
+
+221 
+__NTH
+ (
+	$toupper
+ (int 
+__c
+))
+
+223 return 
+__c
+ >= -128 && __c < 256 ? (*
+	`__ctype_toupper_loc
+ ())[__c] : __c;
+
+224 
+	}
+}
+
+227 #if 
+__GNUC__
+ >= 2 && 
+defined
+ 
+__OPTIMIZE__
+ && !defined 
+__cplusplus
+
+
+228 #define 
+	#tolower
+(
+c
+) 
+	`__tobody
+ (c, 
+tolower
+, *
+	`__ctype_tolower_loc
+ (), (c))
+
+	)
+
+229 #define 
+	#toupper
+(
+c
+) 
+	`__tobody
+ (c, 
+toupper
+, *
+	`__ctype_toupper_loc
+ (), (c))
+
+	)
+
+232 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_MISC
+ || defined 
+__USE_XOPEN
+
+
+233 #define 
+	#isascii
+(
+c
+) 
+	`__isascii
+ (c)
+
+	)
+
+234 #define 
+	#toascii
+(
+c
+) 
+	`__toascii
+ (c)
+
+	)
+
+236 #define 
+	#_tolower
+(
+c
+) ((int) (*
+	`__ctype_tolower_loc
+ ())[(int) (c)])
+
+	)
+
+237 #define 
+	#_toupper
+(
+c
+) ((int) (*
+	`__ctype_toupper_loc
+ ())[(int) (c)])
+
+	)
+
+243 #ifdef 
+__USE_XOPEN2K8
+
+
+257 #include 
+	~<xlocale.h
+>
+
+261 #define 
+	#__isctype_l
+(
+c
+, 
+type
+, 
+locale
+) \
+
+262 ((
+locale
+)->
+__ctype_b
+[(int) (
+c
+)] & (unsigned short int) 
+type
+)
+
+	)
+
+264 #define 
+	#__exctype_l
+(
+name
+) \
+
+265 extern int 
+	`name
+ (int, 
+__locale_t
+) 
+__THROW
+
+
+	)
+
+271 
+__exctype_l
+ (
+isalnum_l
+);
+
+272 
+__exctype_l
+ (
+isalpha_l
+);
+
+273 
+__exctype_l
+ (
+iscntrl_l
+);
+
+274 
+__exctype_l
+ (
+isdigit_l
+);
+
+275 
+__exctype_l
+ (
+islower_l
+);
+
+276 
+__exctype_l
+ (
+isgraph_l
+);
+
+277 
+__exctype_l
+ (
+isprint_l
+);
+
+278 
+__exctype_l
+ (
+ispunct_l
+);
+
+279 
+__exctype_l
+ (
+isspace_l
+);
+
+280 
+__exctype_l
+ (
+isupper_l
+);
+
+281 
+__exctype_l
+ (
+isxdigit_l
+);
+
+283 
+__exctype_l
+ (
+isblank_l
+);
+
+287 extern int 
+	$__tolower_l
+ (int 
+__c
+, 
+__locale_t
+ 
+__l
+) 
+__THROW
+;
+
+288 extern int 
+	$tolower_l
+ (int 
+__c
+, 
+__locale_t
+ 
+__l
+) 
+__THROW
+;
+
+291 extern int 
+	$__toupper_l
+ (int 
+__c
+, 
+__locale_t
+ 
+__l
+) 
+__THROW
+;
+
+292 extern int 
+	$toupper_l
+ (int 
+__c
+, 
+__locale_t
+ 
+__l
+) 
+__THROW
+;
+
+294 #if 
+__GNUC__
+ >= 2 && 
+defined
+ 
+__OPTIMIZE__
+ && !defined 
+__cplusplus
+
+
+295 #define 
+	#__tolower_l
+(
+c
+, 
+locale
+) \
+
+296 
+	`__tobody
+ (
+c
+, 
+__tolower_l
+, (
+locale
+)->
+__ctype_tolower
+, (c, locale))
+
+	)
+
+297 #define 
+	#__toupper_l
+(
+c
+, 
+locale
+) \
+
+298 
+	`__tobody
+ (
+c
+, 
+__toupper_l
+, (
+locale
+)->
+__ctype_toupper
+, (c, locale))
+
+	)
+
+299 #define 
+	#tolower_l
+(
+c
+, 
+locale
+) 
+	`__tolower_l
+ ((c), (locale))
+
+	)
+
+300 #define 
+	#toupper_l
+(
+c
+, 
+locale
+) 
+	`__toupper_l
+ ((c), (locale))
+
+	)
+
+304 #ifndef 
+__NO_CTYPE
+
+
+305 #define 
+	#__isalnum_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISalnum
+, (l))
+
+	)
+
+306 #define 
+	#__isalpha_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISalpha
+, (l))
+
+	)
+
+307 #define 
+	#__iscntrl_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_IScntrl
+, (l))
+
+	)
+
+308 #define 
+	#__isdigit_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISdigit
+, (l))
+
+	)
+
+309 #define 
+	#__islower_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISlower
+, (l))
+
+	)
+
+310 #define 
+	#__isgraph_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISgraph
+, (l))
+
+	)
+
+311 #define 
+	#__isprint_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISprint
+, (l))
+
+	)
+
+312 #define 
+	#__ispunct_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISpunct
+, (l))
+
+	)
+
+313 #define 
+	#__isspace_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISspace
+, (l))
+
+	)
+
+314 #define 
+	#__isupper_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISupper
+, (l))
+
+	)
+
+315 #define 
+	#__isxdigit_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISxdigit
+, (l))
+
+	)
+
+317 #define 
+	#__isblank_l
+(
+c
+,
+l
+) 
+	`__isctype_l
+((c), 
+_ISblank
+, (l))
+
+	)
+
+319 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_MISC
+
+
+320 #define 
+	#__isascii_l
+(
+c
+,
+l
+) ((l), 
+	`__isascii
+ (c))
+
+	)
+
+321 #define 
+	#__toascii_l
+(
+c
+,
+l
+) ((l), 
+	`__toascii
+ (c))
+
+	)
+
+324 #define 
+	#isalnum_l
+(
+c
+,
+l
+) 
+	`__isalnum_l
+ ((c), (l))
+
+	)
+
+325 #define 
+	#isalpha_l
+(
+c
+,
+l
+) 
+	`__isalpha_l
+ ((c), (l))
+
+	)
+
+326 #define 
+	#iscntrl_l
+(
+c
+,
+l
+) 
+	`__iscntrl_l
+ ((c), (l))
+
+	)
+
+327 #define 
+	#isdigit_l
+(
+c
+,
+l
+) 
+	`__isdigit_l
+ ((c), (l))
+
+	)
+
+328 #define 
+	#islower_l
+(
+c
+,
+l
+) 
+	`__islower_l
+ ((c), (l))
+
+	)
+
+329 #define 
+	#isgraph_l
+(
+c
+,
+l
+) 
+	`__isgraph_l
+ ((c), (l))
+
+	)
+
+330 #define 
+	#isprint_l
+(
+c
+,
+l
+) 
+	`__isprint_l
+ ((c), (l))
+
+	)
+
+331 #define 
+	#ispunct_l
+(
+c
+,
+l
+) 
+	`__ispunct_l
+ ((c), (l))
+
+	)
+
+332 #define 
+	#isspace_l
+(
+c
+,
+l
+) 
+	`__isspace_l
+ ((c), (l))
+
+	)
+
+333 #define 
+	#isupper_l
+(
+c
+,
+l
+) 
+	`__isupper_l
+ ((c), (l))
+
+	)
+
+334 #define 
+	#isxdigit_l
+(
+c
+,
+l
+) 
+	`__isxdigit_l
+ ((c), (l))
+
+	)
+
+336 #define 
+	#isblank_l
+(
+c
+,
+l
+) 
+	`__isblank_l
+ ((c), (l))
+
+	)
+
+338 #if 
+defined
+ 
+__USE_SVID
+ || defined 
+__USE_MISC
+
+
+339 #define 
+	#isascii_l
+(
+c
+,
+l
+) 
+	`__isascii_l
+ ((c), (l))
+
+	)
+
+340 #define 
+	#toascii_l
+(
+c
+,
+l
+) 
+	`__toascii_l
+ ((c), (l))
+
+	)
+
+347 
+__END_DECLS
+
+
+	@/usr/include/stdc-predef.h
+
+18 #ifndef 
+_STDC_PREDEF_H
+
+
+19 #define 
+	#_STDC_PREDEF_H
+ 1
+
+	)
+
+36 #ifdef 
+__GCC_IEC_559
+
+
+37 #if 
+__GCC_IEC_559
+ > 0
+
+38 #define 
+	#__STDC_IEC_559__
+ 1
+
+	)
+
+41 #define 
+	#__STDC_IEC_559__
+ 1
+
+	)
+
+44 #ifdef 
+__GCC_IEC_559_COMPLEX
+
+
+45 #if 
+__GCC_IEC_559_COMPLEX
+ > 0
+
+46 #define 
+	#__STDC_IEC_559_COMPLEX__
+ 1
+
+	)
+
+49 #define 
+	#__STDC_IEC_559_COMPLEX__
+ 1
+
+	)
+
+54 #define 
+	#__STDC_ISO_10646__
+ 201103L
+
+	)
+
+57 #define 
+	#__STDC_NO_THREADS__
+ 1
+
+	)
+
+	@/usr/include/endian.h
+
+18 #ifndef 
+_ENDIAN_H
+
+
+19 #define 
+	#_ENDIAN_H
+ 1
+
+	)
+
+21 #include 
+	~<features.h
+>
+
+31 #define 
+	#__LITTLE_ENDIAN
+ 1234
+
+	)
+
+32 #define 
+	#__BIG_ENDIAN
+ 4321
+
+	)
+
+33 #define 
+	#__PDP_ENDIAN
+ 3412
+
+	)
+
+36 #include 
+	~<bits/endian.h
+>
+
+40 #ifndef 
+__FLOAT_WORD_ORDER
+
+
+41 #define 
+	#__FLOAT_WORD_ORDER
+ 
+__BYTE_ORDER
+
+
+	)
+
+44 #ifdef 
+__USE_BSD
+
+
+45 #define 
+	#LITTLE_ENDIAN
+ 
+__LITTLE_ENDIAN
+
+
+	)
+
+46 #define 
+	#BIG_ENDIAN
+ 
+__BIG_ENDIAN
+
+
+	)
+
+47 #define 
+	#PDP_ENDIAN
+ 
+__PDP_ENDIAN
+
+
+	)
+
+48 #define 
+	#BYTE_ORDER
+ 
+__BYTE_ORDER
+
+
+	)
+
+51 #if 
+__BYTE_ORDER
+ == 
+__LITTLE_ENDIAN
+
+
+52 #define 
+	#__LONG_LONG_PAIR
+(
+HI
+, 
+LO
+) LO, 
+	)
+HI
+
+53 #elif 
+__BYTE_ORDER
+ == 
+__BIG_ENDIAN
+
+
+54 #define 
+	#__LONG_LONG_PAIR
+(
+HI
+, 
+LO
+) HI, 
+	)
+LO
+
+58 #if 
+defined
+ 
+__USE_BSD
+ && !defined 
+__ASSEMBLER__
+
+
+60 #include 
+	~<bits/byteswap.h
+>
+
+62 #if 
+__BYTE_ORDER
+ == 
+__LITTLE_ENDIAN
+
+
+63 #define 
+	#htobe16
+(
+x
+) 
+	`__bswap_16
+ (x)
+
+	)
+
+64 #define 
+	#htole16
+(
+x
+) (x)
+
+	)
+
+65 #define 
+	#be16toh
+(
+x
+) 
+	`__bswap_16
+ (x)
+
+	)
+
+66 #define 
+	#le16toh
+(
+x
+) (x)
+
+	)
+
+68 #define 
+	#htobe32
+(
+x
+) 
+	`__bswap_32
+ (x)
+
+	)
+
+69 #define 
+	#htole32
+(
+x
+) (x)
+
+	)
+
+70 #define 
+	#be32toh
+(
+x
+) 
+	`__bswap_32
+ (x)
+
+	)
+
+71 #define 
+	#le32toh
+(
+x
+) (x)
+
+	)
+
+73 #define 
+	#htobe64
+(
+x
+) 
+	`__bswap_64
+ (x)
+
+	)
+
+74 #define 
+	#htole64
+(
+x
+) (x)
+
+	)
+
+75 #define 
+	#be64toh
+(
+x
+) 
+	`__bswap_64
+ (x)
+
+	)
+
+76 #define 
+	#le64toh
+(
+x
+) (x)
+
+	)
+
+79 #define 
+	#htobe16
+(
+x
+) (x)
+
+	)
+
+80 #define 
+	#htole16
+(
+x
+) 
+	`__bswap_16
+ (x)
+
+	)
+
+81 #define 
+	#be16toh
+(
+x
+) (x)
+
+	)
+
+82 #define 
+	#le16toh
+(
+x
+) 
+	`__bswap_16
+ (x)
+
+	)
+
+84 #define 
+	#htobe32
+(
+x
+) (x)
+
+	)
+
+85 #define 
+	#htole32
+(
+x
+) 
+	`__bswap_32
+ (x)
+
+	)
+
+86 #define 
+	#be32toh
+(
+x
+) (x)
+
+	)
+
+87 #define 
+	#le32toh
+(
+x
+) 
+	`__bswap_32
+ (x)
+
+	)
+
+89 #define 
+	#htobe64
+(
+x
+) (x)
+
+	)
+
+90 #define 
+	#htole64
+(
+x
+) 
+	`__bswap_64
+ (x)
+
+	)
+
+91 #define 
+	#be64toh
+(
+x
+) (x)
+
+	)
+
+92 #define 
+	#le64toh
+(
+x
+) 
+	`__bswap_64
+ (x)
+
+	)
+
+	@/usr/include/gconv.h
+
+22 #ifndef 
+_GCONV_H
+
+
+23 #define 
+	#_GCONV_H
+ 1
+
+	)
+
+25 #include 
+	~<features.h
+>
+
+26 #define 
+	#__need_mbstate_t
+
+
+	)
+
+27 #define 
+	#__need_wint_t
+
+
+	)
+
+28 #include 
+	~<wchar.h
+>
+
+29 #define 
+	#__need_size_t
+
+
+	)
+
+30 #define 
+	#__need_wchar_t
+
+
+	)
+
+31 #include 
+	~<stddef.h
+>
+
+34 #define 
+	#__UNKNOWN_10646_CHAR
+ ((
+wchar_t
+) 0xfffd)
+
+	)
+
+39 
+	m__GCONV_OK
+ = 0,
+
+40 
+	m__GCONV_NOCONV
+,
+
+41 
+	m__GCONV_NODB
+,
+
+42 
+	m__GCONV_NOMEM
+,
+
+44 
+	m__GCONV_EMPTY_INPUT
+,
+
+45 
+	m__GCONV_FULL_OUTPUT
+,
+
+46 
+	m__GCONV_ILLEGAL_INPUT
+,
+
+47 
+	m__GCONV_INCOMPLETE_INPUT
+,
+
+49 
+	m__GCONV_ILLEGAL_DESCRIPTOR
+,
+
+50 
+	m__GCONV_INTERNAL_ERROR
+
+
+57 
+	m__GCONV_IS_LAST
+ = 0x0001,
+
+58 
+	m__GCONV_IGNORE_ERRORS
+ = 0x0002,
+
+59 
+	m__GCONV_SWAP
+ = 0x0004
+
+64 struct 
+	g__gconv_step
+;
+
+65 struct 
+	g__gconv_step_data
+;
+
+66 struct 
+	g__gconv_loaded_object
+;
+
+67 struct 
+	g__gconv_trans_data
+;
+
+71 typedef int (*
+	t__gconv_fct
+) (struct 
+	t__gconv_step
+ *, struct 
+	t__gconv_step_data
+ *,
+
+73 unsigned char **, 
+	tsize_t
+ *, int, int);
+
+76 typedef 
+	$wint_t
+ (*
+	t__gconv_btowc_fct
+) (struct 
+	t__gconv_step
+ *, unsigned char);
+
+79 typedef int (*
+	t__gconv_init_fct
+) (struct 
+	t__gconv_step
+ *);
+
+80 typedef void (*
+	t__gconv_end_fct
+) (struct 
+	t__gconv_step
+ *);
+
+84 typedef int (*
+	t__gconv_trans_fct
+) (struct 
+	t__gconv_step
+ *,
+
+85 struct 
+	t__gconv_step_data
+ *, void *,
+
+89 
+	tsize_t
+ *);
+
+92 typedef int (*
+	t__gconv_trans_context_fct
+) (void *, const unsigned char *,
+
+97 typedef int (*
+	t__gconv_trans_query_fct
+) (const char *, const char ***,
+
+98 
+	tsize_t
+ *);
+
+101 typedef int (*
+	t__gconv_trans_init_fct
+) (void **, const char *);
+
+102 typedef void (*
+	t__gconv_trans_end_fct
+) (void *);
+
+104 struct 
+	s__gconv_trans_data
+
+
+107 
+__gconv_trans_fct
+ 
+__trans_fct
+;
+
+108 
+__gconv_trans_context_fct
+ 
+__trans_context_fct
+;
+
+109 
+__gconv_trans_end_fct
+ 
+__trans_end_fct
+;
+
+110 void *
+__data
+;
+
+111 struct 
+__gconv_trans_data
+ *
+__next
+;
+
+116 struct 
+	s__gconv_step
+
+
+118 struct 
+__gconv_loaded_object
+ *
+__shlib_handle
+;
+
+119 const char *
+__modname
+;
+
+121 int 
+__counter
+;
+
+123 char *
+__from_name
+;
+
+124 char *
+__to_name
+;
+
+126 
+__gconv_fct
+ 
+__fct
+;
+
+127 
+__gconv_btowc_fct
+ 
+__btowc_fct
+;
+
+128 
+__gconv_init_fct
+ 
+__init_fct
+;
+
+129 
+__gconv_end_fct
+ 
+__end_fct
+;
+
+133 int 
+__min_needed_from
+;
+
+134 int 
+__max_needed_from
+;
+
+135 int 
+__min_needed_to
+;
+
+136 int 
+__max_needed_to
+;
+
+139 int 
+__stateful
+;
+
+141 void *
+__data
+;
+
+146 struct 
+	s__gconv_step_data
+
+
+148 unsigned char *
+__outbuf
+;
+
+149 unsigned char *
+__outbufend
+;
+
+153 int 
+__flags
+;
+
+157 int 
+__invocation_counter
+;
+
+161 int 
+__internal_use
+;
+
+163 
+__mbstate_t
+ *
+__statep
+;
+
+164 
+__mbstate_t
+ 
+__state
+;
+
+168 struct 
+__gconv_trans_data
+ *
+__trans
+;
+
+173 typedef struct 
+	s__gconv_info
+
+
+175 
+size_t
+ 
+__nsteps
+;
+
+176 struct 
+__gconv_step
+ *
+__steps
+;
+
+177 
+__extension__
+ struct 
+__gconv_step_data
+ 
+__data
+ 
+__flexarr
+;
+
+178 } *
+	t__gconv_t
+;
+
+	@/usr/include/wchar.h
+
+23 #ifndef 
+_WCHAR_H
+
+
+25 #if !
+defined
+ 
+__need_mbstate_t
+ && !defined 
+__need_wint_t
+
+
+26 #define 
+	#_WCHAR_H
+ 1
+
+	)
+
+27 #include 
+	~<features.h
+>
+
+30 #ifdef 
+_WCHAR_H
+
+
+32 #define 
+	#__need___FILE
+
+
+	)
+
+33 #if 
+defined
+ 
+__USE_UNIX98
+ || defined 
+__USE_XOPEN2K
+
+
+34 #define 
+	#__need_FILE
+
+
+	)
+
+36 #include 
+	~<stdio.h
+>
+
+38 #define 
+	#__need___va_list
+
+
+	)
+
+39 #include 
+	~<stdarg.h
+>
+
+41 #include 
+	~<bits/wchar.h
+>
+
+44 #define 
+	#__need_size_t
+
+
+	)
+
+45 #define 
+	#__need_wchar_t
+
+
+	)
+
+46 #define 
+	#__need_NULL
+
+
+	)
+
+48 #if 
+defined
+ 
+_WCHAR_H
+ || defined 
+__need_wint_t
+ || !defined 
+__WINT_TYPE__
+
+
+49 #undef 
+__need_wint_t
+
+
+50 #define 
+	#__need_wint_t
+
+
+	)
+
+51 #include 
+	~<stddef.h
+>
+
+55 #ifndef 
+_WINT_T
+
+
+60 #define 
+	#_WINT_T
+
+
+	)
+
+61 typedef unsigned int 
+	twint_t
+;
+
+65 #if 
+defined
+ 
+__cplusplus
+ && defined 
+_GLIBCPP_USE_NAMESPACES
+ \
+
+66 && 
+defined
+ 
+__WINT_TYPE__
+
+
+67 
+__BEGIN_NAMESPACE_STD
+
+
+68 typedef 
+__WINT_TYPE__
+ 
+	twint_t
+;
+
+69 
+	g__END_NAMESPACE_STD
+
+
+74 #if 
+defined
+ 
+__cplusplus
+ && 
+__GNUC_PREREQ
+ (4, 4)
+
+75 #define 
+	#__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+	)
+
+79 #if (
+defined
+ 
+_WCHAR_H
+ || defined 
+__need_mbstate_t
+) && !defined 
+____mbstate_t_defined
+
+
+80 #define 
+	#____mbstate_t_defined
+ 1
+
+	)
+
+84 int 
+	m__count
+;
+
+87 #ifdef 
+__WINT_TYPE__
+
+
+88 
+__WINT_TYPE__
+ 
+	m__wch
+;
+
+90 
+wint_t
+ 
+	m__wch
+;
+
+92 char 
+	m__wchb
+[4];
+
+93 } 
+	m__value
+;
+
+94 } 
+	t__mbstate_t
+;
+
+96 #undef 
+__need_mbstate_t
+
+
+101 #ifdef 
+_WCHAR_H
+
+
+103 #ifndef 
+__mbstate_t_defined
+
+
+104 
+__BEGIN_NAMESPACE_C99
+
+
+106 typedef 
+__mbstate_t
+ 
+	tmbstate_t
+;
+
+107 
+	g__END_NAMESPACE_C99
+
+
+108 #define 
+	#__mbstate_t_defined
+ 1
+
+	)
+
+111 #ifdef 
+__USE_GNU
+
+
+112 
+	$__USING_NAMESPACE_C99
+(
+mbstate_t
+)
+
+115 #ifndef 
+WCHAR_MIN
+
+
+117 #define 
+	#WCHAR_MIN
+ 
+__WCHAR_MIN
+
+
+	)
+
+118 #define 
+	#WCHAR_MAX
+ 
+__WCHAR_MAX
+
+
+	)
+
+121 #ifndef 
+WEOF
+
+
+122 #define 
+	#WEOF
+ (0xffffffffu)
+
+	)
+
+127 #if 
+defined
+ 
+__USE_XOPEN
+ && !defined 
+__USE_UNIX98
+
+
+128 #include 
+	~<wctype.h
+>
+
+132 
+__BEGIN_DECLS
+
+
+134 
+__BEGIN_NAMESPACE_STD
+
+
+137 struct 
+tm
+;
+
+138 
+__END_NAMESPACE_STD
+
+
+142 
+	$__USING_NAMESPACE_STD
+(
+tm
+)
+
+145 
+__BEGIN_NAMESPACE_STD
+
+
+147 extern 
+wchar_t
+ *
+	$wcscpy
+ (
+wchar_t
+ *
+__restrict
+ 
+__dest
+,
+
+148 const 
+wchar_t
+ *
+__restrict
+ 
+__src
+) 
+__THROW
+;
+
+150 extern 
+wchar_t
+ *
+	$wcsncpy
+ (
+wchar_t
+ *
+__restrict
+ 
+__dest
+,
+
+151 const 
+wchar_t
+ *
+__restrict
+ 
+__src
+, 
+size_t
+ 
+__n
+)
+
+152 
+__THROW
+;
+
+155 extern 
+wchar_t
+ *
+	$wcscat
+ (
+wchar_t
+ *
+__restrict
+ 
+__dest
+,
+
+156 const 
+wchar_t
+ *
+__restrict
+ 
+__src
+) 
+__THROW
+;
+
+158 extern 
+wchar_t
+ *
+	$wcsncat
+ (
+wchar_t
+ *
+__restrict
+ 
+__dest
+,
+
+159 const 
+wchar_t
+ *
+__restrict
+ 
+__src
+, 
+size_t
+ 
+__n
+)
+
+160 
+__THROW
+;
+
+163 extern int 
+	$wcscmp
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+)
+
+164 
+__THROW
+ 
+__attribute_pure__
+;
+
+166 extern int 
+	$wcsncmp
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+, 
+size_t
+ 
+__n
+)
+
+167 
+__THROW
+ 
+__attribute_pure__
+;
+
+168 
+__END_NAMESPACE_STD
+
+
+170 #ifdef 
+__USE_XOPEN2K8
+
+
+172 extern int 
+	$wcscasecmp
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+) 
+__THROW
+;
+
+175 extern int 
+	$wcsncasecmp
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+,
+
+176 
+size_t
+ 
+__n
+) 
+__THROW
+;
+
+180 #include 
+	~<xlocale.h
+>
+
+182 extern int 
+	$wcscasecmp_l
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+,
+
+183 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+185 extern int 
+	$wcsncasecmp_l
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+,
+
+186 
+size_t
+ 
+__n
+, 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+189 
+__BEGIN_NAMESPACE_STD
+
+
+192 extern int 
+	$wcscoll
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+) 
+__THROW
+;
+
+196 extern 
+size_t
+ 
+	$wcsxfrm
+ (
+wchar_t
+ *
+__restrict
+ 
+__s1
+,
+
+197 const 
+wchar_t
+ *
+__restrict
+ 
+__s2
+, 
+size_t
+ 
+__n
+) 
+__THROW
+;
+
+198 
+__END_NAMESPACE_STD
+
+
+200 #ifdef 
+__USE_XOPEN2K8
+
+
+206 extern int 
+	$wcscoll_l
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+,
+
+207 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+212 extern 
+size_t
+ 
+	$wcsxfrm_l
+ (
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+,
+
+213 
+size_t
+ 
+__n
+, 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+216 extern 
+wchar_t
+ *
+	$wcsdup
+ (const 
+wchar_t
+ *
+__s
+) 
+__THROW
+ 
+__attribute_malloc__
+;
+
+219 
+__BEGIN_NAMESPACE_STD
+
+
+221 #ifdef 
+__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+222 extern "C++" 
+wchar_t
+ *
+	$wcschr
+ (
+wchar_t
+ *
+__wcs
+, wchar_t 
+__wc
+)
+
+223 
+__THROW
+ 
+	`__asm
+ ("wcschr") 
+__attribute_pure__
+;
+
+224 extern "C++" const 
+wchar_t
+ *
+	$wcschr
+ (const 
+wchar_t
+ *
+__wcs
+, wchar_t 
+__wc
+)
+
+225 
+__THROW
+ 
+	`__asm
+ ("wcschr") 
+__attribute_pure__
+;
+
+227 extern 
+wchar_t
+ *
+	$wcschr
+ (const 
+wchar_t
+ *
+__wcs
+, wchar_t 
+__wc
+)
+
+228 
+__THROW
+ 
+__attribute_pure__
+;
+
+231 #ifdef 
+__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+232 extern "C++" 
+wchar_t
+ *
+	$wcsrchr
+ (
+wchar_t
+ *
+__wcs
+, wchar_t 
+__wc
+)
+
+233 
+__THROW
+ 
+	`__asm
+ ("wcsrchr") 
+__attribute_pure__
+;
+
+234 extern "C++" const 
+wchar_t
+ *
+	$wcsrchr
+ (const 
+wchar_t
+ *
+__wcs
+, wchar_t 
+__wc
+)
+
+235 
+__THROW
+ 
+	`__asm
+ ("wcsrchr") 
+__attribute_pure__
+;
+
+237 extern 
+wchar_t
+ *
+	$wcsrchr
+ (const 
+wchar_t
+ *
+__wcs
+, wchar_t 
+__wc
+)
+
+238 
+__THROW
+ 
+__attribute_pure__
+;
+
+240 
+__END_NAMESPACE_STD
+
+
+242 #ifdef 
+__USE_GNU
+
+
+245 extern 
+wchar_t
+ *
+	$wcschrnul
+ (const 
+wchar_t
+ *
+__s
+, wchar_t 
+__wc
+)
+
+246 
+__THROW
+ 
+__attribute_pure__
+;
+
+249 
+__BEGIN_NAMESPACE_STD
+
+
+252 extern 
+size_t
+ 
+	$wcscspn
+ (const 
+wchar_t
+ *
+__wcs
+, const wchar_t *
+__reject
+)
+
+253 
+__THROW
+ 
+__attribute_pure__
+;
+
+256 extern 
+size_t
+ 
+	$wcsspn
+ (const 
+wchar_t
+ *
+__wcs
+, const wchar_t *
+__accept
+)
+
+257 
+__THROW
+ 
+__attribute_pure__
+;
+
+259 #ifdef 
+__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+260 extern "C++" 
+wchar_t
+ *
+	$wcspbrk
+ (
+wchar_t
+ *
+__wcs
+, const wchar_t *
+__accept
+)
+
+261 
+__THROW
+ 
+	`__asm
+ ("wcspbrk") 
+__attribute_pure__
+;
+
+262 extern "C++" const 
+wchar_t
+ *
+	$wcspbrk
+ (const 
+wchar_t
+ *
+__wcs
+,
+
+263 const 
+wchar_t
+ *
+__accept
+)
+
+264 
+__THROW
+ 
+	`__asm
+ ("wcspbrk") 
+__attribute_pure__
+;
+
+266 extern 
+wchar_t
+ *
+	$wcspbrk
+ (const 
+wchar_t
+ *
+__wcs
+, const wchar_t *
+__accept
+)
+
+267 
+__THROW
+ 
+__attribute_pure__
+;
+
+270 #ifdef 
+__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+271 extern "C++" 
+wchar_t
+ *
+	$wcsstr
+ (
+wchar_t
+ *
+__haystack
+, const wchar_t *
+__needle
+)
+
+272 
+__THROW
+ 
+	`__asm
+ ("wcsstr") 
+__attribute_pure__
+;
+
+273 extern "C++" const 
+wchar_t
+ *
+	$wcsstr
+ (const 
+wchar_t
+ *
+__haystack
+,
+
+274 const 
+wchar_t
+ *
+__needle
+)
+
+275 
+__THROW
+ 
+	`__asm
+ ("wcsstr") 
+__attribute_pure__
+;
+
+277 extern 
+wchar_t
+ *
+	$wcsstr
+ (const 
+wchar_t
+ *
+__haystack
+, const wchar_t *
+__needle
+)
+
+278 
+__THROW
+ 
+__attribute_pure__
+;
+
+282 extern 
+wchar_t
+ *
+	$wcstok
+ (
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+283 const 
+wchar_t
+ *
+__restrict
+ 
+__delim
+,
+
+284 
+wchar_t
+ **
+__restrict
+ 
+__ptr
+) 
+__THROW
+;
+
+287 extern 
+size_t
+ 
+	$wcslen
+ (const 
+wchar_t
+ *
+__s
+) 
+__THROW
+ 
+__attribute_pure__
+;
+
+288 
+__END_NAMESPACE_STD
+
+
+290 #ifdef 
+__USE_XOPEN
+
+
+292 #ifdef 
+__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+293 extern "C++" 
+wchar_t
+ *
+	$wcswcs
+ (
+wchar_t
+ *
+__haystack
+, const wchar_t *
+__needle
+)
+
+294 
+__THROW
+ 
+	`__asm
+ ("wcswcs") 
+__attribute_pure__
+;
+
+295 extern "C++" const 
+wchar_t
+ *
+	$wcswcs
+ (const 
+wchar_t
+ *
+__haystack
+,
+
+296 const 
+wchar_t
+ *
+__needle
+)
+
+297 
+__THROW
+ 
+	`__asm
+ ("wcswcs") 
+__attribute_pure__
+;
+
+299 extern 
+wchar_t
+ *
+	$wcswcs
+ (const 
+wchar_t
+ *
+__haystack
+, const wchar_t *
+__needle
+)
+
+300 
+__THROW
+ 
+__attribute_pure__
+;
+
+304 #ifdef 
+__USE_XOPEN2K8
+
+
+306 extern 
+size_t
+ 
+	$wcsnlen
+ (const 
+wchar_t
+ *
+__s
+, 
+size_t
+ 
+__maxlen
+)
+
+307 
+__THROW
+ 
+__attribute_pure__
+;
+
+311 
+__BEGIN_NAMESPACE_STD
+
+
+313 #ifdef 
+__CORRECT_ISO_CPP_WCHAR_H_PROTO
+
+
+314 extern "C++" 
+wchar_t
+ *
+	$wmemchr
+ (
+wchar_t
+ *
+__s
+, wchar_t 
+__c
+, 
+size_t
+ 
+__n
+)
+
+315 
+__THROW
+ 
+	`__asm
+ ("wmemchr") 
+__attribute_pure__
+;
+
+316 extern "C++" const 
+wchar_t
+ *
+	$wmemchr
+ (const 
+wchar_t
+ *
+__s
+, wchar_t 
+__c
+,
+
+317 
+size_t
+ 
+__n
+)
+
+318 
+__THROW
+ 
+	`__asm
+ ("wmemchr") 
+__attribute_pure__
+;
+
+320 extern 
+wchar_t
+ *
+	$wmemchr
+ (const 
+wchar_t
+ *
+__s
+, wchar_t 
+__c
+, 
+size_t
+ 
+__n
+)
+
+321 
+__THROW
+ 
+__attribute_pure__
+;
+
+325 extern int 
+	$wmemcmp
+ (const 
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+, 
+size_t
+ 
+__n
+)
+
+326 
+__THROW
+ 
+__attribute_pure__
+;
+
+329 extern 
+wchar_t
+ *
+	$wmemcpy
+ (
+wchar_t
+ *
+__restrict
+ 
+__s1
+,
+
+330 const 
+wchar_t
+ *
+__restrict
+ 
+__s2
+, 
+size_t
+ 
+__n
+) 
+__THROW
+;
+
+334 extern 
+wchar_t
+ *
+	$wmemmove
+ (
+wchar_t
+ *
+__s1
+, const wchar_t *
+__s2
+, 
+size_t
+ 
+__n
+)
+
+335 
+__THROW
+;
+
+338 extern 
+wchar_t
+ *
+	$wmemset
+ (
+wchar_t
+ *
+__s
+, wchar_t 
+__c
+, 
+size_t
+ 
+__n
+) 
+__THROW
+;
+
+339 
+__END_NAMESPACE_STD
+
+
+341 #ifdef 
+__USE_GNU
+
+
+344 extern 
+wchar_t
+ *
+	$wmempcpy
+ (
+wchar_t
+ *
+__restrict
+ 
+__s1
+,
+
+345 const 
+wchar_t
+ *
+__restrict
+ 
+__s2
+, 
+size_t
+ 
+__n
+)
+
+346 
+__THROW
+;
+
+350 
+__BEGIN_NAMESPACE_STD
+
+
+353 extern 
+wint_t
+ 
+	$btowc
+ (int 
+__c
+) 
+__THROW
+;
+
+357 extern int 
+	$wctob
+ (
+wint_t
+ 
+__c
+) 
+__THROW
+;
+
+361 extern int 
+	$mbsinit
+ (const 
+mbstate_t
+ *
+__ps
+) 
+__THROW
+ 
+__attribute_pure__
+;
+
+365 extern 
+size_t
+ 
+	$mbrtowc
+ (
+wchar_t
+ *
+__restrict
+ 
+__pwc
+,
+
+366 const char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__n
+,
+
+367 
+mbstate_t
+ *
+__restrict
+ 
+__p
+) 
+__THROW
+;
+
+370 extern 
+size_t
+ 
+	$wcrtomb
+ (char *
+__restrict
+ 
+__s
+, 
+wchar_t
+ 
+__wc
+,
+
+371 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+374 extern 
+size_t
+ 
+	$__mbrlen
+ (const char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__n
+,
+
+375 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+376 extern 
+size_t
+ 
+	$mbrlen
+ (const char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__n
+,
+
+377 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+378 
+__END_NAMESPACE_STD
+
+
+380 #ifdef 
+__USE_EXTERN_INLINES
+
+
+386 extern 
+wint_t
+ 
+	$__btowc_alias
+ (int 
+__c
+) 
+	`__asm
+ ("btowc");
+
+387 
+__extern_inline
+ 
+wint_t
+
+
+388 
+	`__NTH
+ (
+	$btowc
+ (int 
+__c
+))
+
+389 { return (
+	`__builtin_constant_p
+ (
+__c
+) && __c >= '\0' && __c <= '\x7f'
+
+390 ? (
+wint_t
+) 
+__c
+ : 
+	`__btowc_alias
+ (__c)); 
+	}
+}
+
+392 extern int 
+	$__wctob_alias
+ (
+wint_t
+ 
+__c
+) 
+	`__asm
+ ("wctob");
+
+393 
+__extern_inline
+ int
+
+394 
+	`__NTH
+ (
+	$wctob
+ (
+wint_t
+ 
+__wc
+))
+
+395 { return (
+	`__builtin_constant_p
+ (
+__wc
+) && __wc >= 
+L
+'\0' && __wc <= L'\x7f'
+
+396 ? (int) 
+__wc
+ : 
+	`__wctob_alias
+ (__wc)); 
+	}
+}
+
+398 
+__extern_inline
+ 
+size_t
+
+
+399 
+__NTH
+ (
+	$mbrlen
+ (const char *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__n
+,
+
+400 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+))
+
+401 { return (
+__ps
+ != 
+NULL
+
+
+402 ? 
+	`mbrtowc
+ (
+NULL
+, 
+__s
+, 
+__n
+, 
+__ps
+) : 
+	`__mbrlen
+ (__s, __n, NULL)); 
+	}
+}
+
+405 
+__BEGIN_NAMESPACE_STD
+
+
+408 extern 
+size_t
+ 
+	$mbsrtowcs
+ (
+wchar_t
+ *
+__restrict
+ 
+__dst
+,
+
+409 const char **
+__restrict
+ 
+__src
+, 
+size_t
+ 
+__len
+,
+
+410 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+414 extern 
+size_t
+ 
+	$wcsrtombs
+ (char *
+__restrict
+ 
+__dst
+,
+
+415 const 
+wchar_t
+ **
+__restrict
+ 
+__src
+, 
+size_t
+ 
+__len
+,
+
+416 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+417 
+__END_NAMESPACE_STD
+
+
+420 #ifdef 
+__USE_XOPEN2K8
+
+
+423 extern 
+size_t
+ 
+	$mbsnrtowcs
+ (
+wchar_t
+ *
+__restrict
+ 
+__dst
+,
+
+424 const char **
+__restrict
+ 
+__src
+, 
+size_t
+ 
+__nmc
+,
+
+425 
+size_t
+ 
+__len
+, 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+429 extern 
+size_t
+ 
+	$wcsnrtombs
+ (char *
+__restrict
+ 
+__dst
+,
+
+430 const 
+wchar_t
+ **
+__restrict
+ 
+__src
+,
+
+431 
+size_t
+ 
+__nwc
+, size_t 
+__len
+,
+
+432 
+mbstate_t
+ *
+__restrict
+ 
+__ps
+) 
+__THROW
+;
+
+437 #ifdef 
+__USE_XOPEN
+
+
+439 extern int 
+	$wcwidth
+ (
+wchar_t
+ 
+__c
+) 
+__THROW
+;
+
+443 extern int 
+	$wcswidth
+ (const 
+wchar_t
+ *
+__s
+, 
+size_t
+ 
+__n
+) 
+__THROW
+;
+
+447 
+__BEGIN_NAMESPACE_STD
+
+
+450 extern double 
+	$wcstod
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+451 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+) 
+__THROW
+;
+
+452 
+__END_NAMESPACE_STD
+
+
+454 #ifdef 
+__USE_ISOC99
+
+
+455 
+__BEGIN_NAMESPACE_C99
+
+
+457 extern float 
+	$wcstof
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+458 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+) 
+__THROW
+;
+
+459 extern long double 
+	$wcstold
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+460 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+) 
+__THROW
+;
+
+461 
+__END_NAMESPACE_C99
+
+
+465 
+__BEGIN_NAMESPACE_STD
+
+
+468 extern long int 
+	$wcstol
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+469 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, int 
+__base
+) 
+__THROW
+;
+
+473 extern unsigned long int 
+	$wcstoul
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+474 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, int 
+__base
+)
+
+475 
+__THROW
+;
+
+476 
+__END_NAMESPACE_STD
+
+
+478 #ifdef 
+__USE_ISOC99
+
+
+479 
+__BEGIN_NAMESPACE_C99
+
+
+482 
+__extension__
+
+
+483 extern long long int 
+	$wcstoll
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+484 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, int 
+__base
+)
+
+485 
+__THROW
+;
+
+489 
+__extension__
+
+
+490 extern unsigned long long int 
+	$wcstoull
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+491 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+,
+
+492 int 
+__base
+) 
+__THROW
+;
+
+493 
+__END_NAMESPACE_C99
+
+
+496 #ifdef 
+__USE_GNU
+
+
+499 
+__extension__
+
+
+500 extern long long int 
+	$wcstoq
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+501 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, int 
+__base
+)
+
+502 
+__THROW
+;
+
+506 
+__extension__
+
+
+507 extern unsigned long long int 
+	$wcstouq
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+508 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+,
+
+509 int 
+__base
+) 
+__THROW
+;
+
+512 #ifdef 
+__USE_GNU
+
+
+526 #include 
+	~<xlocale.h
+>
+
+530 extern long int 
+	$wcstol_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+531 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, int 
+__base
+,
+
+532 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+534 extern unsigned long int 
+	$wcstoul_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+535 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+,
+
+536 int 
+__base
+, 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+538 
+__extension__
+
+
+539 extern long long int 
+	$wcstoll_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+540 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+,
+
+541 int 
+__base
+, 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+543 
+__extension__
+
+
+544 extern unsigned long long int 
+	$wcstoull_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+545 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+,
+
+546 int 
+__base
+, 
+__locale_t
+ 
+__loc
+)
+
+547 
+__THROW
+;
+
+549 extern double 
+	$wcstod_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+550 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, 
+__locale_t
+ 
+__loc
+)
+
+551 
+__THROW
+;
+
+553 extern float 
+	$wcstof_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+554 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+, 
+__locale_t
+ 
+__loc
+)
+
+555 
+__THROW
+;
+
+557 extern long double 
+	$wcstold_l
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__nptr
+,
+
+558 
+wchar_t
+ **
+__restrict
+ 
+__endptr
+,
+
+559 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+563 #ifdef 
+__USE_XOPEN2K8
+
+
+566 extern 
+wchar_t
+ *
+	$wcpcpy
+ (
+wchar_t
+ *
+__restrict
+ 
+__dest
+,
+
+567 const 
+wchar_t
+ *
+__restrict
+ 
+__src
+) 
+__THROW
+;
+
+571 extern 
+wchar_t
+ *
+	$wcpncpy
+ (
+wchar_t
+ *
+__restrict
+ 
+__dest
+,
+
+572 const 
+wchar_t
+ *
+__restrict
+ 
+__src
+, 
+size_t
+ 
+__n
+)
+
+573 
+__THROW
+;
+
+580 extern 
+__FILE
+ *
+	$open_wmemstream
+ (
+wchar_t
+ **
+__bufloc
+, 
+size_t
+ *
+__sizeloc
+) 
+__THROW
+;
+
+583 #if 
+defined
+ 
+__USE_ISOC95
+ || defined 
+__USE_UNIX98
+
+
+584 
+__BEGIN_NAMESPACE_STD
+
+
+587 extern int 
+	$fwide
+ (
+__FILE
+ *
+__fp
+, int 
+__mode
+) 
+__THROW
+;
+
+594 extern int 
+	`fwprintf
+ (
+__FILE
+ *
+__restrict
+ 
+__stream
+,
+
+595 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+601 extern int 
+	`wprintf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+604 extern int 
+	$swprintf
+ (
+wchar_t
+ *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__n
+,
+
+605 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+606 
+__THROW
+ ;
+
+612 extern int 
+	`vfwprintf
+ (
+__FILE
+ *
+__restrict
+ 
+__s
+,
+
+613 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+614 
+__gnuc_va_list
+ 
+__arg
+)
+
+620 extern int 
+	`vwprintf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+621 
+__gnuc_va_list
+ 
+__arg
+)
+
+625 extern int 
+	$vswprintf
+ (
+wchar_t
+ *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__n
+,
+
+626 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+627 
+__gnuc_va_list
+ 
+__arg
+)
+
+628 
+__THROW
+ ;
+
+635 extern int 
+	`fwscanf
+ (
+__FILE
+ *
+__restrict
+ 
+__stream
+,
+
+636 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+642 extern int 
+	`wscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+645 extern int 
+	$swscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+646 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+647 
+__THROW
+ ;
+
+649 #if 
+defined
+ 
+__USE_ISOC99
+ && !defined 
+__USE_GNU
+ \
+
+650 && (!
+defined
+ 
+__LDBL_COMPAT
+ || !defined 
+__REDIRECT
+) \
+
+651 && (
+defined
+ 
+__STRICT_ANSI__
+ || defined 
+__USE_XOPEN2K
+)
+
+652 #ifdef 
+__REDIRECT
+
+
+656 extern int 
+	`__REDIRECT
+ (
+fwscanf
+, (
+__FILE
+ *
+__restrict
+ 
+__stream
+,
+
+657 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...),
+
+658 
+__isoc99_fwscanf
+)
+
+660 extern int 
+	`__REDIRECT
+ (
+wscanf
+, (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...),
+
+661 
+__isoc99_wscanf
+)
+
+663 extern int 
+	`__REDIRECT_NTH
+ (
+swscanf
+, (const 
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+664 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+665 ...), 
+__isoc99_swscanf
+)
+
+668 extern int 
+	`__isoc99_fwscanf
+ (
+__FILE
+ *
+__restrict
+ 
+__stream
+,
+
+669 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...);
+
+670 extern int 
+	`__isoc99_wscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...);
+
+671 extern int 
+	$__isoc99_swscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+672 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+, ...)
+
+673 
+__THROW
+;
+
+674 #define 
+	#fwscanf
+ 
+__isoc99_fwscanf
+
+
+	)
+
+675 #define 
+	#wscanf
+ 
+__isoc99_wscanf
+
+
+	)
+
+676 #define 
+	#swscanf
+ 
+__isoc99_swscanf
+
+
+	)
+
+680 
+__END_NAMESPACE_STD
+
+
+683 #ifdef 
+__USE_ISOC99
+
+
+684 
+__BEGIN_NAMESPACE_C99
+
+
+689 extern int 
+	`vfwscanf
+ (
+__FILE
+ *
+__restrict
+ 
+__s
+,
+
+690 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+691 
+__gnuc_va_list
+ 
+__arg
+)
+
+697 extern int 
+	`vwscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+698 
+__gnuc_va_list
+ 
+__arg
+)
+
+701 extern int 
+	$vswscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+702 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+703 
+__gnuc_va_list
+ 
+__arg
+)
+
+704 
+__THROW
+ ;
+
+706 #if !
+defined
+ 
+__USE_GNU
+ \
+
+707 && (!
+defined
+ 
+__LDBL_COMPAT
+ || !defined 
+__REDIRECT
+) \
+
+708 && (
+defined
+ 
+__STRICT_ANSI__
+ || defined 
+__USE_XOPEN2K
+)
+
+709 #ifdef 
+__REDIRECT
+
+
+710 extern int 
+	`__REDIRECT
+ (
+vfwscanf
+, (
+__FILE
+ *
+__restrict
+ 
+__s
+,
+
+711 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+712 
+__gnuc_va_list
+ 
+__arg
+), 
+__isoc99_vfwscanf
+)
+
+714 extern int 
+	`__REDIRECT
+ (
+vwscanf
+, (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+715 
+__gnuc_va_list
+ 
+__arg
+), 
+__isoc99_vwscanf
+)
+
+717 extern int 
+	`__REDIRECT_NTH
+ (
+vswscanf
+, (const 
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+718 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+719 
+__gnuc_va_list
+ 
+__arg
+), 
+__isoc99_vswscanf
+)
+
+722 extern int 
+	`__isoc99_vfwscanf
+ (
+__FILE
+ *
+__restrict
+ 
+__s
+,
+
+723 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+724 
+__gnuc_va_list
+ 
+__arg
+);
+
+725 extern int 
+	`__isoc99_vwscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+726 
+__gnuc_va_list
+ 
+__arg
+);
+
+727 extern int 
+	$__isoc99_vswscanf
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__s
+,
+
+728 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+729 
+__gnuc_va_list
+ 
+__arg
+) 
+__THROW
+;
+
+730 #define 
+	#vfwscanf
+ 
+__isoc99_vfwscanf
+
+
+	)
+
+731 #define 
+	#vwscanf
+ 
+__isoc99_vwscanf
+
+
+	)
+
+732 #define 
+	#vswscanf
+ 
+__isoc99_vswscanf
+
+
+	)
+
+736 
+__END_NAMESPACE_C99
+
+
+740 
+__BEGIN_NAMESPACE_STD
+
+
+745 extern 
+wint_t
+ 
+	`fgetwc
+ (
+__FILE
+ *
+__stream
+);
+
+746 extern 
+wint_t
+ 
+	`getwc
+ (
+__FILE
+ *
+__stream
+);
+
+752 extern 
+wint_t
+ 
+	`getwchar
+ (void);
+
+759 extern 
+wint_t
+ 
+	`fputwc
+ (
+wchar_t
+ 
+__wc
+, 
+__FILE
+ *
+__stream
+);
+
+760 extern 
+wint_t
+ 
+	`putwc
+ (
+wchar_t
+ 
+__wc
+, 
+__FILE
+ *
+__stream
+);
+
+766 extern 
+wint_t
+ 
+	`putwchar
+ (
+wchar_t
+ 
+__wc
+);
+
+774 extern 
+wchar_t
+ *
+	`fgetws
+ (wchar_t *
+__restrict
+ 
+__ws
+, int 
+__n
+,
+
+775 
+__FILE
+ *
+__restrict
+ 
+__stream
+);
+
+781 extern int 
+	`fputws
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__ws
+,
+
+782 
+__FILE
+ *
+__restrict
+ 
+__stream
+);
+
+789 extern 
+wint_t
+ 
+	`ungetwc
+ (wint_t 
+__wc
+, 
+__FILE
+ *
+__stream
+);
+
+790 
+__END_NAMESPACE_STD
+
+
+793 #ifdef 
+__USE_GNU
+
+
+801 extern 
+wint_t
+ 
+	`getwc_unlocked
+ (
+__FILE
+ *
+__stream
+);
+
+802 extern 
+wint_t
+ 
+	`getwchar_unlocked
+ (void);
+
+810 extern 
+wint_t
+ 
+	`fgetwc_unlocked
+ (
+__FILE
+ *
+__stream
+);
+
+818 extern 
+wint_t
+ 
+	`fputwc_unlocked
+ (
+wchar_t
+ 
+__wc
+, 
+__FILE
+ *
+__stream
+);
+
+827 extern 
+wint_t
+ 
+	`putwc_unlocked
+ (
+wchar_t
+ 
+__wc
+, 
+__FILE
+ *
+__stream
+);
+
+828 extern 
+wint_t
+ 
+	`putwchar_unlocked
+ (
+wchar_t
+ 
+__wc
+);
+
+837 extern 
+wchar_t
+ *
+	`fgetws_unlocked
+ (wchar_t *
+__restrict
+ 
+__ws
+, int 
+__n
+,
+
+838 
+__FILE
+ *
+__restrict
+ 
+__stream
+);
+
+846 extern int 
+	`fputws_unlocked
+ (const 
+wchar_t
+ *
+__restrict
+ 
+__ws
+,
+
+847 
+__FILE
+ *
+__restrict
+ 
+__stream
+);
+
+851 
+__BEGIN_NAMESPACE_C99
+
+
+855 extern 
+size_t
+ 
+	$wcsftime
+ (
+wchar_t
+ *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__maxsize
+,
+
+856 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+857 const struct 
+tm
+ *
+__restrict
+ 
+__tp
+) 
+__THROW
+;
+
+858 
+__END_NAMESPACE_C99
+
+
+860 #ifdef 
+__USE_GNU
+
+
+861 #include 
+	~<xlocale.h
+>
+
+865 extern 
+size_t
+ 
+	$wcsftime_l
+ (
+wchar_t
+ *
+__restrict
+ 
+__s
+, 
+size_t
+ 
+__maxsize
+,
+
+866 const 
+wchar_t
+ *
+__restrict
+ 
+__format
+,
+
+867 const struct 
+tm
+ *
+__restrict
+ 
+__tp
+,
+
+868 
+__locale_t
+ 
+__loc
+) 
+__THROW
+;
+
+877 #if 
+defined
+ 
+__USE_UNIX98
+ && !defined 
+__USE_GNU
+
+
+878 #define 
+	#__need_iswxxx
+
+
+	)
+
+879 #include 
+	~<wctype.h
+>
+
+883 #if 
+__USE_FORTIFY_LEVEL
+ > 0 && 
+defined
+ 
+__fortify_function
+
+
+884 #include 
+	~<bits/wchar2.h
+>
+
+887 #ifdef 
+__LDBL_COMPAT
+
+
+888 #include 
+	~<bits/wchar-ldbl.h
+>
+
+891 
+__END_DECLS
+
+
+899 #undef 
+__need_mbstate_t
+
+
+900 #undef 
+__need_wint_t
+
+
+	@/usr/include/wctype.h
+
+23 #ifndef 
+_WCTYPE_H
+
+
+25 #include 
+	~<features.h
+>
+
+26 #include 
+	~<bits/types.h
+>
+
+28 #ifndef 
+__need_iswxxx
+
+
+29 #define 
+	#_WCTYPE_H
+ 1
+
+	)
+
+32 #define 
+	#__need_wint_t
+
+
+	)
+
+33 #include 
+	~<wchar.h
+>
+
+37 #ifndef 
+WEOF
+
+
+38 #define 
+	#WEOF
+ (0xffffffffu)
+
+	)
+
+41 #undef 
+__need_iswxxx
+
+
+46 #ifndef 
+__iswxxx_defined
+
+
+47 #define 
+	#__iswxxx_defined
+ 1
+
+	)
+
+49 
+__BEGIN_NAMESPACE_C99
+
+
+52 typedef unsigned long int 
+	twctype_t
+;
+
+53 
+	g__END_NAMESPACE_C99
+
+
+55 #ifndef 
+_ISwbit
+
+
+60 #include 
+	~<endian.h
+>
+
+61 #if 
+__BYTE_ORDER
+ == 
+__BIG_ENDIAN
+
+
+62 #define 
+	#_ISwbit
+(
+bit
+) (1 << (bit))
+
+	)
+
+64 #define 
+	#_ISwbit
+(
+bit
+) \
+
+65 ((
+bit
+) < 8 ? (int) ((1UL << (bit)) << 24) \
+
+66 : ((
+bit
+) < 16 ? (int) ((1UL << (bit)) << 8) \
+
+67 : ((
+bit
+) < 24 ? (int) ((1UL << (bit)) >> 8) \
+
+68 : (int) ((1UL << (
+bit
+)) >> 24))))
+
+	)
+
+73 
+	m__ISwupper
+ = 0,
+
+74 
+	m__ISwlower
+ = 1,
+
+75 
+	m__ISwalpha
+ = 2,
+
+76 
+	m__ISwdigit
+ = 3,
+
+77 
+	m__ISwxdigit
+ = 4,
+
+78 
+	m__ISwspace
+ = 5,
+
+79 
+	m__ISwprint
+ = 6,
+
+80 
+	m__ISwgraph
+ = 7,
+
+81 
+	m__ISwblank
+ = 8,
+
+82 
+	m__ISwcntrl
+ = 9,
+
+83 
+	m__ISwpunct
+ = 10,
+
+84 
+	m__ISwalnum
+ = 11,
+
+86 
+	m_ISwupper
+ = 
+_ISwbit
+ (
+__ISwupper
+),
+
+87 
+	m_ISwlower
+ = 
+_ISwbit
+ (
+__ISwlower
+),
+
+88 
+	m_ISwalpha
+ = 
+_ISwbit
+ (
+__ISwalpha
+),
+
+89 
+	m_ISwdigit
+ = 
+_ISwbit
+ (
+__ISwdigit
+),
+
+90 
+	m_ISwxdigit
+ = 
+_ISwbit
+ (
+__ISwxdigit
+),
+
+91 
+	m_ISwspace
+ = 
+_ISwbit
+ (
+__ISwspace
+),
+
+92 
+	m_ISwprint
+ = 
+_ISwbit
+ (
+__ISwprint
+),
+
+93 
+	m_ISwgraph
+ = 
+_ISwbit
+ (
+__ISwgraph
+),
+
+94 
+	m_ISwblank
+ = 
+_ISwbit
+ (
+__ISwblank
+),
+
+95 
+	m_ISwcntrl
+ = 
+_ISwbit
+ (
+__ISwcntrl
+),
+
+96 
+	m_ISwpunct
+ = 
+_ISwbit
+ (
+__ISwpunct
+),
+
+97 
+	m_ISwalnum
+ = 
+_ISwbit
+ (
+__ISwalnum
+)
+
+102 
+__BEGIN_DECLS
+
+
+104 
+__BEGIN_NAMESPACE_C99
+
+
+111 extern int 
+	$iswalnum
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+117 extern int 
+	$iswalpha
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+120 extern int 
+	$iswcntrl
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+124 extern int 
+	$iswdigit
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+128 extern int 
+	$iswgraph
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+133 extern int 
+	$iswlower
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+136 extern int 
+	$iswprint
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+141 extern int 
+	$iswpunct
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+146 extern int 
+	$iswspace
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+151 extern int 
+	$iswupper
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+156 extern int 
+	$iswxdigit
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+161 #ifdef 
+__USE_ISOC99
+
+
+162 extern int 
+	$iswblank
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+171 extern 
+wctype_t
+ 
+	$wctype
+ (const char *
+__property
+) 
+__THROW
+;
+
+175 extern int 
+	$iswctype
+ (
+wint_t
+ 
+__wc
+, 
+wctype_t
+ 
+__desc
+) 
+__THROW
+;
+
+176 
+__END_NAMESPACE_C99
+
+
+183 
+__BEGIN_NAMESPACE_C99
+
+
+186 typedef const 
+	t__int32_t
+ *
+	twctrans_t
+;
+
+187 
+__END_NAMESPACE_C99
+
+
+188 #ifdef 
+__USE_GNU
+
+
+189 
+	$__USING_NAMESPACE_C99
+(
+wctrans_t
+)
+
+192 
+__BEGIN_NAMESPACE_C99
+
+
+194 extern 
+wint_t
+ 
+	$towlower
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+197 extern 
+wint_t
+ 
+	$towupper
+ (
+wint_t
+ 
+__wc
+) 
+__THROW
+;
+
+198 
+__END_NAMESPACE_C99
+
+
+200 
+__END_DECLS
+
+
+207 #ifdef 
+_WCTYPE_H
+
+
+213 
+__BEGIN_DECLS
+
+
+215 
+__BEGIN_NAMESPACE_C99
+
+
+218 extern 
+wctrans_t
+ 
+	$wctrans
+ (const char *
+__property
+) 
+__THROW
+;
+
+221 extern 
+wint_t
+ 
+	$towctrans
+ (
+wint_t
+ 
+__wc
+, 
+wctrans_t
+ 
+__desc
+) 
+__THROW
+;
+
+222 
+__END_NAMESPACE_C99
+
+
+224 #ifdef 
+__USE_XOPEN2K8
+
+
+226 #include 
+	~<xlocale.h
+>
+
+230 extern int 
+	$iswalnum_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+236 extern int 
+	$iswalpha_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+239 extern int 
+	$iswcntrl_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+243 extern int 
+	$iswdigit_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+247 extern int 
+	$iswgraph_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+252 extern int 
+	$iswlower_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+255 extern int 
+	$iswprint_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+260 extern int 
+	$iswpunct_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+265 extern int 
+	$iswspace_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+270 extern int 
+	$iswupper_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+275 extern int 
+	$iswxdigit_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+280 extern int 
+	$iswblank_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+284 extern 
+wctype_t
+ 
+	$wctype_l
+ (const char *
+__property
+, 
+__locale_t
+ 
+__locale
+)
+
+285 
+__THROW
+;
+
+289 extern int 
+	$iswctype_l
+ (
+wint_t
+ 
+__wc
+, 
+wctype_t
+ 
+__desc
+, 
+__locale_t
+ 
+__locale
+)
+
+290 
+__THROW
+;
+
+298 extern 
+wint_t
+ 
+	$towlower_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+301 extern 
+wint_t
+ 
+	$towupper_l
+ (
+wint_t
+ 
+__wc
+, 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+305 extern 
+wctrans_t
+ 
+	$wctrans_l
+ (const char *
+__property
+, 
+__locale_t
+ 
+__locale
+)
+
+306 
+__THROW
+;
+
+309 extern 
+wint_t
+ 
+	$towctrans_l
+ (
+wint_t
+ 
+__wc
+, 
+wctrans_t
+ 
+__desc
+,
+
+310 
+__locale_t
+ 
+__locale
+) 
+__THROW
+;
+
+314 
+__END_DECLS
+
+
+	@
+1
+.
+1
+/usr/include
+16
+350
+RpiCamOpenCV.cpp
+camera_calibration.cpp
+/usr/include/math.h
+/usr/include/stdio.h
+/usr/include/time.h
+/usr/include/features.h
+/usr/include/getopt.h
+/usr/include/libio.h
+/usr/include/xlocale.h
+/usr/include/_G_config.h
+/usr/include/ctype.h
+/usr/include/stdc-predef.h
+/usr/include/endian.h
+/usr/include/gconv.h
+/usr/include/wchar.h
+/usr/include/wctype.h

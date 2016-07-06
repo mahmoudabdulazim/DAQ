@@ -1,19 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(daq)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
 
-## System dependencies are found with CMake's conventions
-
-#find_package(Boost REQUIRED COMPONENTS system)
 
 set(raspicam_DIR "/usr/local/lib/cmake")
 
@@ -53,19 +43,9 @@ catkin_package(
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-# include_directories(include)
-
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${raspicam_INCLUDE_DIRS})
 include_directories(include ${catkin_INCLUDE_DIRS})
-
-## Declare a C++ library
-# add_library(daq
-#   src/${PROJECT_NAME}/daq.cpp
-# )
-
 
 set(CMAKE_C_FLAGS "-DMPU9150 -DMPU_DEBUGON ${CMAKE_C_FLAGS}")
 
@@ -84,18 +64,16 @@ target_link_libraries( RPi_Camera raspicam raspicam_cv ${OpenCV_LIBRARIES} ${cat
 ## either from message generation or dynamic reconfigure
 # add_dependencies(daq ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Declare a C++ executable
 add_executable(mono-vo src/mono-vo/visodo.cpp)
 target_link_libraries (mono-vo raspicam raspicam_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
+
+add_executable(camera-calibration src/RPiCam/camera_calibration.cpp)
+target_link_libraries (camera-calibration raspicam raspicam_cv ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(daq_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
-# target_link_libraries(daq_node
-#   ${catkin_LIBRARIES}
-# )
 
 #############
 ## Install ##
