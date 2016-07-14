@@ -1,0 +1,23 @@
+#include "ros/ros.h"
+#include "MotionSensor/MPU-9150.h"
+
+using namespace std;
+using namespace ros;
+
+int main(int argc,char* argv[])
+{
+	init(argc,argv,"IMU_Demo");
+	MPU9150 IMU;
+	NodeHandle IMU_Node;
+	Rate loop_rate(50);
+	IMU.Initialize();
+	while(ok())
+	{
+		IMU.Read();
+		
+		ROS_INFO("Yaw is: %f, Pitch is: %f, Roll is: %f || Compass is: %f %f %f || Acceleration is: %f %f %f",IMU.ypr[0],IMU.ypr[1],IMU.ypr[2],IMU.compass[0],IMU.compass[1],IMU.compass[2],IMU.accel[0],IMU.accel[1],IMU.accel[2]);
+		
+		spinOnce();
+		loop_rate.sleep();
+	}
+}

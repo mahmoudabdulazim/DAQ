@@ -16,6 +16,10 @@ int main(int argc,char **argv)
 	ros::init(argc,argv,"RpiCamera");
 	ros::NodeHandle RPiC;
 	RaspiCam_Cv RPiCam;
+
+	RPiCam.set(CV_CAP_PROP_FRAME_WIDTH,320*3);
+	RPiCam.set(CV_CAP_PROP_FRAME_HEIGHT,240*3);
+
 	Mat image;
 	if (!RPiCam.open())
 	{

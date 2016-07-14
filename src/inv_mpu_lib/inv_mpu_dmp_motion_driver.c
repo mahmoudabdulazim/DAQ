@@ -13,16 +13,16 @@
  *      @details    All functions are preceded by the dmp_ prefix to
  *                  differentiate among MPL and general driver function calls.
  */
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "inv_mpu_lib/inv_mpu.h"
+#include "inv_mpu_lib/inv_mpu9150.h"
 #include "inv_mpu_lib/inv_mpu_dmp_motion_driver.h"
+#include "inv_mpu_lib/inv_mpu_dmp_motion_driver9150.h"
 #include "inv_mpu_lib/dmpKey.h"
 #include "inv_mpu_lib/dmpmap.h"
-
 /* These defines are copied from dmpDefaultMPU6050.c in the general MPL
  * releases. These defines may change for each DMP image, so be sure to modify
  * these values when switching to a new image.
@@ -1361,4 +1361,3 @@ uint8_t dmp_register_android_orient_cb(void (*func)(uint8_t))
 /**
  *  @}
  */
-

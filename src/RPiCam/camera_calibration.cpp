@@ -143,10 +143,14 @@ public:
 			if (inputType == CAMERA)
 				inputCapture.open(cameraID);
 			if (inputType == RASPICAM)
+			{	
+				RPiCam.set(CV_CAP_PROP_FRAME_WIDTH,320*2);
+				RPiCam.set(CV_CAP_PROP_FRAME_HEIGHT,240*2);
 				RPiCam.open();
+			}
 			if (inputType == VIDEO_FILE)
 				inputCapture.open(input);
-			if (inputType != IMAGE_LIST && !inputCapture.isOpened())
+			if (inputType != IMAGE_LIST && !inputCapture.isOpened() && !RPiCam.isOpened())
 				inputType = INVALID;
 		}
 		if (inputType == INVALID)
@@ -377,6 +381,7 @@ int main(int argc, char* argv[])
 			}
 			// Draw the corners.
 			drawChessboardCorners( view, s.boardSize, Mat(pointBuf), found );
+			waitKey(0);
 		}
 		//! [pattern_found]
 		//----------------------------- Output Text ------------------------------------------------
@@ -411,7 +416,8 @@ int main(int argc, char* argv[])
 		//------------------------------ Show image and check for input commands -------------------
 		//! [await_input]
 		imshow("Image View", view);
-		char key = (char)waitKey(s.inputCapture.isOpened() ? 50 : s.delay);
+		
+		char key = (char)waitKey(1);
 
 		if( key  == ESC_KEY )
 			break;
@@ -419,7 +425,7 @@ int main(int argc, char* argv[])
 		if( key == 'u' && mode == CALIBRATED )
 			s.showUndistorsed = !s.showUndistorsed;
 
-		if( s.inputCapture.isOpened() && key == 'g' )
+		if( (s.inputCapture.isOpened() || s.RPiCam.isOpened()) && key == 'g' )
 		{
 			mode = CAPTURING;
 			imagePoints.clear();

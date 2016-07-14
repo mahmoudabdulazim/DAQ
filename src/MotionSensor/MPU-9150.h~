@@ -1,0 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <string.h>
+#include <math.h>
+
+#include "MotionSensor/helper_3dmath.h"
+#include "MotionSensor/MotionSensor.h"
+#include "inv_mpu_lib/inv_mpu.h"
+#include "inv_mpu_lib/inv_mpu_dmp_motion_driver.h"
+#include "MotionSensor/sensor.h"

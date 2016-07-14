@@ -1,0 +1,12 @@
+float64 Px
+float64 Py
+float64 Pz
+float64 vx
+float64 vy
+float64 vz
+float64 Yaw
+float64 Pitch
+float64 Roll
+float64 q
+float64 p
+float64 r

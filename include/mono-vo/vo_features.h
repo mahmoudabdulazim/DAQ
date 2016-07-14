@@ -46,11 +46,11 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 	//this function automatically gets rid of points for which tracking fails
 	
 	vector<float> err;					
-	Size winSize=Size(21,21);																								
-	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01);
+	Size winSize=Size(11,11);																								
+	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.001);
 	if (points1.size() > 0)
 	{
-		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize, 3, termcrit, 0, 0.001);
+		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize,1 , termcrit, 0, 0.0005);
 		
 		//getting rid of points for which the KLT tracking failed or those who have gone outside the frame
 		int indexCorrection = 0;
@@ -69,8 +69,8 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 			}
 		
 		}
-		cout << "Index Correction is : " << indexCorrection << endl;
-		cout << "No. Of Features  is : " << points2.size() << endl;
+		/*cout << "Index Correction is : " << indexCorrection << endl;
+		cout << "No. Of Features  is : " << points2.size() << endl;*/
 	}
 	else
 	{
@@ -79,12 +79,13 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 }
 
 
-void featureDetection(Mat img_1, vector<Point2f>& points1)	
+void featureDetection(Mat &img_1, vector<Point2f>& points1,Mat& img_f)	
 {   
 	//uses FAST as of now, modify parameters as necessary
 	vector<KeyPoint> keypoints_1;
-	int fast_threshold = 20;
+	int fast_threshold = 30;
 	bool nonmaxSuppression = true;
 	FAST(img_1, keypoints_1, fast_threshold, nonmaxSuppression);
+	drawKeypoints(img_1,keypoints_1,img_f);
 	KeyPoint::convert(keypoints_1, points1, vector<int>());
 }
