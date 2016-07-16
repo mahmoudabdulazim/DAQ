@@ -12,7 +12,6 @@ class CameraInfo
 		Mat DistortionCoefficients;
 		int ImageWidth;
 		int ImageHeight;
-		Size ImageSize;
 		double FoVx;
 		double FoVy;
 		double ApertureWidth  = 3.67;
@@ -37,6 +36,8 @@ class CameraInfo
                        	CharacteristicsFile << "PrincipalPoint" << PrincipalPoint;
                        	CharacteristicsFile << "FoVx" << FoVx;
                        	CharacteristicsFile << "FoVy" << FoVy;
+			CharacteristicsFile << "ImageWidth" << ImageWidth;
+			CharacteristicsFile << "ImageHeight" << ImageHeight;
 
 			CharacteristicsFile.release();
                	}
@@ -51,9 +52,9 @@ class CameraInfo
                                 CalibrationData["distortion_coefficients"] >> DistortionCoefficients;
                                 CalibrationData["extrinsic_parameters"] >> ExtrinsicParameters;
 				
-				ImageSize = Size(ImageWidth,ImageHeight);
+				
                                 cout << "Extracting Information from Camera Matrix" << endl;
-				calibrationMatrixValues(IntrinsicParameters,ImageSize,ApertureWidth,ApertureHeight,FoVx,FoVy,FocalLength,PrincipalPoint,AspectRatio);
+				calibrationMatrixValues(IntrinsicParameters,Size(ImageWidth,ImageHeight),ApertureWidth,ApertureHeight,FoVx,FoVy,FocalLength,PrincipalPoint,AspectRatio);
 				cout << "Extraction Done, Values Stored" << endl;
 				return 1;
                         }

@@ -47,7 +47,7 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 	
 	vector<float> err;					
 	Size winSize=Size(11,11);																								
-	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.001);
+	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 10, 0.01);
 	if (points1.size() > 0)
 	{
 		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize,1 , termcrit, 0, 0.0005);
@@ -68,7 +68,7 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 				indexCorrection++;
 			}
 		
-		}
+		} 
 		/*cout << "Index Correction is : " << indexCorrection << endl;
 		cout << "No. Of Features  is : " << points2.size() << endl;*/
 	}

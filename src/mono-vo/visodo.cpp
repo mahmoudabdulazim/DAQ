@@ -13,8 +13,6 @@ using namespace cv;
 using namespace std;
 
 #define MIN_NUM_FEAT 2000
-#define IMAGE_WIDTH  640
-#define IMAGE_HEIGHT 480
 
 int main( int argc, char** argv )
 {
