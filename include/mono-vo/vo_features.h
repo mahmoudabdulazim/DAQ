@@ -44,22 +44,22 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 {
 
 	//this function automatically gets rid of points for which tracking fails
-	
-	vector<float> err;					
-	Size winSize=Size(11,11);																								
-	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 10, 0.01);
+
+	vector<float> err;
+	Size winSize=Size(11,11);
+	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.001);
 	if (points1.size() > 0)
 	{
-		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize,1 , termcrit, 0, 0.0005);
-		
+		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize,1 , termcrit, 0, 0.0001);
+
 		//getting rid of points for which the KLT tracking failed or those who have gone outside the frame
 		int indexCorrection = 0;
 		for( int i=0; i<status.size(); i++)
-		{  
+		{
 			Point2f pt = points2.at(i- indexCorrection);
-			if ((status.at(i) == 0)||(pt.x<0)||(pt.y<0))	
+			if ((status.at(i) == 0)||(pt.x<0)||(pt.y<0))
 			{
-				if((pt.x<0)||(pt.y<0))	
+				if((pt.x<0)||(pt.y<0))
 				{
 					status.at(i) = 0;
 				}
@@ -67,9 +67,9 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 				points2.erase (points2.begin() + (i - indexCorrection));
 				indexCorrection++;
 			}
-		
-		} 
-		/*cout << "Index Correction is : " << indexCorrection << endl;
+
+		}
+/*		cout << "Index Correction is : " << indexCorrection << endl;
 		cout << "No. Of Features  is : " << points2.size() << endl;*/
 	}
 	else
@@ -78,14 +78,31 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 	}
 }
 
+void Point2fToKeyPoint(const vector<Point2f>& Points,vector<KeyPoint> &KeyPoints)
+{
+	for(int i = 0; i < Points.size();i++)
+	{
+		KeyPoints.push_back(cv::KeyPoint(Points[i],1.f));
+	}
+}
+
 
 void featureDetection(Mat &img_1, vector<Point2f>& points1,Mat& img_f)	
-{   
-	//uses FAST as of now, modify parameters as necessary
+{
 	vector<KeyPoint> keypoints_1;
-	int fast_threshold = 30;
+	int max_corners = 200;
+	double quality_measure = 0.1, min_distance  = 20;
+
 	bool nonmaxSuppression = true;
-	FAST(img_1, keypoints_1, fast_threshold, nonmaxSuppression);
+
+	goodFeaturesToTrack(img_1, points1, max_corners,quality_measure,min_distance,noArray(),21);
+
+
+	Point2fToKeyPoint(points1,keypoints_1);
+
+	cout << "Size of vector is : " << keypoints_1.size() << endl;
+
 	drawKeypoints(img_1,keypoints_1,img_f);
-	KeyPoint::convert(keypoints_1, points1, vector<int>());
 }
+
+

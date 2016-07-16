@@ -14,6 +14,9 @@ using namespace std;
 
 #define MIN_NUM_FEAT 2000
 
+void RotationMat2Angles(const Mat& R,double (&ypr)[3]);
+
+
 int main( int argc, char** argv )
 {
 	ros::init(argc,argv,"RpiCamera");
@@ -23,8 +26,8 @@ int main( int argc, char** argv )
 	raspicam::RaspiCam_Cv RPiCam;
 
 	timespec tic,toc;
-	double dt;
-  	Mat img_old, img_new,img_f, R_f = Mat::eye(3, 3, CV_64F), t_f = Mat::zeros(3,1, CV_64F),Mask,R_prev,Rdot,R,t,E;
+	double dt,ypr[3];
+  	Mat img_old, img_new,img_f, R_f = Mat::eye(3, 3, CV_64F), t_f = Mat::zeros(3,1, CV_64F),Mask,R_prev,Rdot,R,R1,R2,t,E;
 	CameraInfo RPiCameraInfo;
 
 	if (argc > 2)
@@ -83,13 +86,28 @@ int main( int argc, char** argv )
 		if ((points_new.size() > 5) && (points_old.size() > 5))
 		{
 			R.copyTo(R_prev);
-			E = findEssentialMat(points_old,points_new,RPiCameraInfo.FocalLength,RPiCameraInfo.PrincipalPoint,RANSAC,0.999,1,Mask);
-			recoverPose(E, points_new, points_old, R, t, RPiCameraInfo.FocalLength, RPiCameraInfo.PrincipalPoint,Mask);
 
+			vector<Point2f> points_old_ref,points_new_ref;
+			undistortPoints(points_old,points_old_ref,RPiCameraInfo.IntrinsicParameters,RPiCameraInfo.DistortionCoefficients);
+			undistortPoints(points_new,points_new_ref,RPiCameraInfo.IntrinsicParameters,RPiCameraInfo.DistortionCoefficients);
+
+
+			E = findEssentialMat(points_old_ref,points_new_ref,1,Point2d(0,0),RANSAC,0.999,3);
+
+			correctMatches(E,points_old_ref,points_new_ref,points_old_ref,points_new_ref);
+//			decomposeEssentialMat(E,R1,R2,t);
+
+/*			cout << "R1 = " << R1 << endl;
+			cout << "R2 = " << R2 << endl;
+			cout << "t  = " << t  << endl;
+*/			int inliers = recoverPose(E, points_new_ref, points_old_ref, R, t, 1,Point2d(0,0));
+
+			cout << "Number of Inliers is: " << inliers << endl;
 			Rdot = R-R_prev;
 
 			t_f = t_f + scale*(R_f*t);
 			R_f = R*R_f;
+			RotationMat2Angles(R_f,ypr);
 		}
 		else
 		{
@@ -101,22 +119,23 @@ int main( int argc, char** argv )
 			featureTracking(img_old,img_new,points_old,points_new, status);
 		}
 
+		imshow("Preview",img_f);
+
 		img_old = img_new.clone();
 		points_old = points_new;
-		imshow("Preview",img_f);
 		waitKey(1);
 
 		daq::SixDoF R_t;
 
-		R_t.Px    = t_f.at<float>(0);
-		R_t.Py    = t_f.at<float>(1);
-		R_t.Pz    = t_f.at<float>(2);
-		R_t.vx    = t.at<float>(0);
-		R_t.vy    = t.at<float>(1);
-		R_t.vz    = t.at<float>(2);
-		R_t.Yaw   = 0;
-		R_t.Pitch = 0;
-		R_t.Roll  = 0;
+		R_t.Px    = t_f.at<double>(0);
+		R_t.Py    = t_f.at<double>(1);
+		R_t.Pz    = t_f.at<double>(2);
+		R_t.vx    = t.at<double>(0);
+		R_t.vy    = t.at<double>(1);
+		R_t.vz    = t.at<double>(2);
+		R_t.Yaw   = ypr[0];
+		R_t.Pitch = ypr[1];
+		R_t.Roll  = ypr[2];
 		R_t.q     = 0;
 		R_t.p     = 0;
 		R_t.r     = 0;
@@ -131,9 +150,11 @@ int main( int argc, char** argv )
 	return 0;
 }
 
-void RotationMat2Angles(const Mat& R,float (&ypr)[3])
+void RotationMat2Angles(const Mat& R,double (&ypr)[3])
 {
-
+	ypr[2] = atan2(R.at<double> (2,1),R.at<double> (2,2))*180/M_PI;
+	ypr[1] = asin(R.at<double> (2,0))*180/M_PI;
+	ypr[0] = -atan2(R.at<double>(1,0), R.at<double>(0,0))*180/M_PI;
 }
 
 void RotationMat2Rates(const Mat& R,const Mat& Rdot,float (&qpr)[3])
