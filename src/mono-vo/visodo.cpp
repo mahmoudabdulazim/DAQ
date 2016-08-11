@@ -12,7 +12,7 @@
 using namespace cv;
 using namespace std;
 
-#define MIN_NUM_FEAT 2000
+#define MIN_NUM_FEAT 150
 
 void RotationMat2Angles(const Mat& R,double (&ypr)[3]);
 
@@ -27,7 +27,7 @@ int main( int argc, char** argv )
 
 	timespec tic,toc;
 	double dt,ypr[3];
-  	Mat img_old, img_new,img_f, R_f = Mat::eye(3, 3, CV_64F), t_f = Mat::zeros(3,1, CV_64F),Mask,R_prev,Rdot,R,R1,R2,t,E;
+  	Mat img_old, img_new, R_f = Mat::eye(3, 3, CV_64F), t_f = Mat::zeros(3,1, CV_64F),Mask,R_prev,Rdot,R,R1,R2,t,E;
 	CameraInfo RPiCameraInfo;
 
 	if (argc > 2)
@@ -69,7 +69,7 @@ int main( int argc, char** argv )
 
 	cvtColor(img_old, img_old, COLOR_BGR2GRAY);
 
-	featureDetection(img_old, points_old,img_f);        //detect features in img_old
+	featureDetection(img_old, points_old);        //detect features in img_old
 
 	vector<uchar> status;
 
@@ -81,6 +81,8 @@ int main( int argc, char** argv )
 		cvtColor(img_new,img_new,COLOR_BGR2GRAY);
 
 		featureTracking(img_old,img_new,points_old,points_new, status); //track those features to img_new
+		
+		daq::SixDoF R_t;
 
 		//Recovering Pose
 		if ((points_new.size() > 5) && (points_old.size() > 5))
@@ -92,7 +94,7 @@ int main( int argc, char** argv )
 			undistortPoints(points_new,points_new_ref,RPiCameraInfo.IntrinsicParameters,RPiCameraInfo.DistortionCoefficients);
 
 
-			E = findEssentialMat(points_old_ref,points_new_ref,1,Point2d(0,0),RANSAC,0.999,3);
+			E = findEssentialMat(points_old_ref,points_new_ref,1,Point2d(0,0),RANSAC,0.999,1);
 
 			correctMatches(E,points_old_ref,points_new_ref,points_old_ref,points_new_ref);
 //			decomposeEssentialMat(E,R1,R2,t);
@@ -103,11 +105,29 @@ int main( int argc, char** argv )
 */			int inliers = recoverPose(E, points_new_ref, points_old_ref, R, t, 1,Point2d(0,0));
 
 			cout << "Number of Inliers is: " << inliers << endl;
-			Rdot = R-R_prev;
+			if (inliers < 15)
+			{
+				if (inliers == 0) 
+					cout << "Camera didn't move" << endl;
+				else 
+					cout << "Insufficient cheirality test inliers" << endl;
 
-			t_f = t_f + scale*(R_f*t);
-			R_f = R*R_f;
-			RotationMat2Angles(R_f,ypr);
+				R_t.vx    = 0;
+				R_t.vy    = 0;
+				R_t.vz    = 0;
+			}
+			else
+			{
+				Rdot = R-R_prev;
+
+				t_f = t_f + scale*(R_f*t);
+				R_f = R*R_f;
+				RotationMat2Angles(R_f,ypr);
+				R_t.vx    = t.at<double>(0);
+				R_t.vy    = t.at<double>(1);
+				R_t.vz    = t.at<double>(2);
+			}
+			
 		}
 		else
 		{
@@ -115,24 +135,20 @@ int main( int argc, char** argv )
 		}
 		if (points_old.size() < MIN_NUM_FEAT)
 		{
-	 		featureDetection(img_old, points_old,img_f);
+	 		featureDetection(img_old, points_old);
 			featureTracking(img_old,img_new,points_old,points_new, status);
 		}
 
-		imshow("Preview",img_f);
+		imshow("Preview",img_old);
 
 		img_old = img_new.clone();
 		points_old = points_new;
 		waitKey(1);
 
-		daq::SixDoF R_t;
-
 		R_t.Px    = t_f.at<double>(0);
 		R_t.Py    = t_f.at<double>(1);
 		R_t.Pz    = t_f.at<double>(2);
-		R_t.vx    = t.at<double>(0);
-		R_t.vy    = t.at<double>(1);
-		R_t.vz    = t.at<double>(2);
+
 		R_t.Yaw   = ypr[0];
 		R_t.Pitch = ypr[1];
 		R_t.Roll  = ypr[2];

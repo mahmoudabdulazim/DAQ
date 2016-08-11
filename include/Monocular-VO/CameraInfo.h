@@ -1,5 +1,5 @@
-#include <opencv2/core/core.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/calib3d.hpp>
 #include <iostream>
 #include <string>
 
@@ -15,8 +15,8 @@ class CameraInfo
 		int ImageHeight;
 		double FoVx;
 		double FoVy;
-		static const double ApertureWidth  = 3.67;
-		static const double ApertureHeight = 2.74;
+		double ApertureWidth  = 3.67;
+		double ApertureHeight = 2.74;
 		double FocalLength;
 		double AspectRatio;
 		cv::Point2d PrincipalPoint;
@@ -55,7 +55,7 @@ class CameraInfo
 
 
 				std::cout << "Extracting Inforcv::Mation from Camera cv::Matrix" << std::endl;
-				calibrationMatrixValues(IntrinsicParameters,cv::Size(ImageWidth,ImageHeight),ApertureWidth,ApertureHeight,FoVx,FoVy,FocalLength,PrincipalPoint,AspectRatio);
+				calibrationMatrixValues(IntrinsicParameters,cv::Size(ImageWidth,ImageHeight),ApertureWidth,ApertureHeight, FoVx, FoVy,FocalLength,PrincipalPoint,AspectRatio);
 				std::cout << "Extraction Done, Values Stored" << std::endl;
 				return 1;
 			}

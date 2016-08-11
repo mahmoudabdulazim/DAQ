@@ -50,7 +50,7 @@ void featureTracking(Mat img_1, Mat img_2, vector<Point2f>& points1, vector<Poin
 	TermCriteria termcrit=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.001);
 	if (points1.size() > 0)
 	{
-		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize,1 , termcrit, 0, 0.0001);
+		calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize,1 , termcrit, 0, 0.0005);
 
 		//getting rid of points for which the KLT tracking failed or those who have gone outside the frame
 		int indexCorrection = 0;
@@ -87,22 +87,20 @@ void Point2fToKeyPoint(const vector<Point2f>& Points,vector<KeyPoint> &KeyPoints
 }
 
 
-void featureDetection(Mat &img_1, vector<Point2f>& points1,Mat& img_f)	
+void featureDetection(Mat &img_1, vector<Point2f>& points1)	
 {
 	vector<KeyPoint> keypoints_1;
-	int max_corners = 200;
-	double quality_measure = 0.1, min_distance  = 20;
+/*	int max_corners = 200;
+	double quality_measure = 0.1, min_distance  = 20;*/
 
 	bool nonmaxSuppression = true;
 
-	goodFeaturesToTrack(img_1, points1, max_corners,quality_measure,min_distance,noArray(),21);
+//	goodFeaturesToTrack(img_1, keypoints_1, max_corners,quality_measure,min_distance,noArray(),15);
+	FAST(img_1,keypoints_1,30,true);
 
-
-	Point2fToKeyPoint(points1,keypoints_1);
-
+//	Point2fToKeyPoint(points1,keypoints_1);
+	KeyPoint::convert(keypoints_1,points1);
 	cout << "Size of vector is : " << keypoints_1.size() << endl;
-
-	drawKeypoints(img_1,keypoints_1,img_f);
 }
 
 

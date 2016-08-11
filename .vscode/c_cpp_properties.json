@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": ["/usr/include"]
+        },
+        {
+            "name": "Linux",
+            "includePath": ["/usr/local/include","/usr/local/include/opencv","/run/user/1000/gvfs/sftp:host=raspberrypi/home/pi/catkin_ws/src/daq/include/","/run/user/1000/gvfs/sftp:host=raspberrypi/usr/local/include/"]
+        },
+        {
+            "name": "Win32",
+            "includePath": ["c:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include"]
+        }
+    ],
+    "clang_format" : {
+        "style" : "file",
+        "fallback-style" : "LLVM",
+        "sort-includes" : false
+    }
+}
