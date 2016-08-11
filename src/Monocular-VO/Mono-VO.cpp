@@ -1,20 +1,25 @@
 #include <stdint.h>
 #include <unistd.h>
 #include "Monocular-VO/Mono-VO.h"
+#include <math.h>
 
 #define ONE_MS 1000
 #define TEN_MS 100
 
 // Declaration & Definitions of some Helper functions
-void rotMat2EulerAngles()
+
+void RotationMat2Angles(Mat R,double (&EulerZYX)[3])
+{
+        EulerZYX[2] = atan2(R.at<double>(2,1), R.at<double> (2,2))*180/M_PI;
+        EulerZYX[1] = asin(R.at<double>(2,0))*180/M_PI;
+        EulerZYX[0] = -atan2(R.at<double>(1,0), R.at<double>(0,0))*180/M_PI;
+}
+
+void RotationMat2ARates(Mat R, Mat R_dot, double (&AngularVel)[3])
 {
 
 }
 
-void rotMat2AngularVel()
-{
-
-}
 
 // Definitions of Class member functions
 bool MonoVOdometry::Initialize(char* argv[])

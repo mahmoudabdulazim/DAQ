@@ -17,8 +17,8 @@ using namespace std;
 using namespace cv;
 using namespace raspicam;
 
-void RotationMat2Angles(Mat R_f,double (&EulerZYX)[3]);
-void RotationMat2ARates(Mat R_f, Mat R_dot, double (&AngularVel)[3]);
+void RotationMat2Angles(Mat R,double (&EulerZYX)[3]);
+void RotationMat2ARates(Mat R, Mat R_dot, double (&AngularVel)[3]);
 
 class MonoVOdometry
 {
